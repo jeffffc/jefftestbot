@@ -238,7 +238,7 @@ def handle(msg):
             helpmsg += "`/patstat: chat your pat history`\n"
             helpmsg += "`/myloc <location>: set your current location for using /now`\n"
             helpmsg += "`/now (<location>): return current weather for your already set location (or inputted location)`\n"
-            helpmsg += "`/feedback <message>: send feedback to me!"
+            helpmsg += "`/feedback <message>: send feedback to me!`"
             bot.sendMessage(from_id, helpmsg, parse_mode='Markdown')
             if chat_type != 'private':
                 bot.sendMessage(chat_id, "I've sent you the help message in private.", reply_to_message_id=reply_to)
