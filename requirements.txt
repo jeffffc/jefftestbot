@@ -1,0 +1,4 @@
+pytz
+telepot
+pymysql
+requests
