@@ -29,7 +29,23 @@ def on_callback_query(msg):
     if query_data == 'start':
         starturl="telegram.me/" + BOT_USERNAME + "?start=help"
         bot.answerCallbackQuery(query_id, url=starturl)
-
+        
+def help():
+        helpmsg = "Availble Commands:\n"
+        helpmsg += "`/pat: [single use or by reply], pats someone`\n"
+        helpmsg += "`/patstat: chat your pat history`\n"
+        helpmsg += "`/myloc <location>: set your current location for using /now`\n"
+        helpmsg += "`/now (<location>): return current weather for your already set location (or inputted location)`\n"
+        helpmsg += "`/feedback <message>: send feedback to me!`"
+        try:
+            bot.sendMessage(from_id, helpmsg, parse_mode='Markdown')
+            if chat_type != 'private':
+                bot.sendMessage(chat_id, "I've sent you the help message in private.", reply_to_message_id=reply_to)
+        except:
+            if chat_type != 'private':
+#                bot.sendMessage(chat_id, "Please start me in PM first.", reply_to_message_id=msgid)
+                nopm(chat_id, from_user, msgid)
+    
 def handle(msg):
     msg2 = telepot.namedtuple.Message(**msg)
     chat_id = msg['chat']['id']
@@ -265,20 +281,21 @@ def handle(msg):
             db2.commit()
             bot.sendMessage(chat_id, "Feedback sent!", reply_to_message_id=reply_to)
         elif real_command == 'help':
-            helpmsg = "Availble Commands:\n"
-            helpmsg += "`/pat: [single use or by reply], pats someone`\n"
-            helpmsg += "`/patstat: chat your pat history`\n"
-            helpmsg += "`/myloc <location>: set your current location for using /now`\n"
-            helpmsg += "`/now (<location>): return current weather for your already set location (or inputted location)`\n"
-            helpmsg += "`/feedback <message>: send feedback to me!`"
-            try:
-                bot.sendMessage(from_id, helpmsg, parse_mode='Markdown')
-                if chat_type != 'private':
-                    bot.sendMessage(chat_id, "I've sent you the help message in private.", reply_to_message_id=reply_to)
-            except:
-                if chat_type != 'private':
-#                    bot.sendMessage(chat_id, "Please start me in PM first.", reply_to_message_id=msgid)
-                    nopm(chat_id, from_user, msgid)
+            help()
+#            helpmsg = "Availble Commands:\n"
+#            helpmsg += "`/pat: [single use or by reply], pats someone`\n"
+#            helpmsg += "`/patstat: chat your pat history`\n"
+#            helpmsg += "`/myloc <location>: set your current location for using /now`\n"
+#            helpmsg += "`/now (<location>): return current weather for your already set location (or inputted location)`\n"
+#            helpmsg += "`/feedback <message>: send feedback to me!`"
+#            try:
+#                bot.sendMessage(from_id, helpmsg, parse_mode='Markdown')
+#                if chat_type != 'private':
+#                    bot.sendMessage(chat_id, "I've sent you the help message in private.", reply_to_message_id=reply_to)
+#            except:
+#                if chat_type != 'private':
+##                    bot.sendMessage(chat_id, "Please start me in PM first.", reply_to_message_id=msgid)
+#                    nopm(chat_id, from_user, msgid)
         elif real_command == 'patstat':
             cursor2 = db2.cursor(pymysql.cursors.DictCursor)
             checkpatcount=("select patted, pattedby from user where telegramid=%d" % from_id)
