@@ -388,27 +388,28 @@ def handle(msg):
     with open("log.txt", "a") as logging:
         logging.write(printmsg + "\n")
 
-bot = telepot.Bot(BOT_TOKEN)
-db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8')
-cursor = db2.cursor()
+def main():
+    bot = telepot.Bot(BOT_TOKEN)
+    db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8')
+    cursor = db2.cursor()
 
-cursor.execute("set names utf8mb4")
-cursor.execute("set character set utf8mb4")
-cursor.execute("set character_set_connection=utf8mb4")
+    cursor.execute("set names utf8mb4")
+    cursor.execute("set character set utf8mb4")
+    cursor.execute("set character_set_connection=utf8mb4")
 
-cursor.execute(SQL_CREATE_TABLE_1)
-cursor.execute(SQL_CREATE_TABLE_2)
-cursor.execute(SQL_CREATE_TABLE_3)
-cursor.execute(SQL_CREATE_TABLE_4)
-db2.commit()
-try:
-    cursor.execute(SQL_DEFAULT_PAT)
+    cursor.execute(SQL_CREATE_TABLE_1)
+    cursor.execute(SQL_CREATE_TABLE_2)
+    cursor.execute(SQL_CREATE_TABLE_3)
+    cursor.execute(SQL_CREATE_TABLE_4)
     db2.commit()
-    db2.close()
-except:
-    print("Default Pat String exists already.")
-bot.message_loop({'chat': handle, 'callback_query': on_callback_query})
-print('I am listening ...')
+    try:
+        cursor.execute(SQL_DEFAULT_PAT)
+        db2.commit()
+        db2.close()
+    except:
+        print("Default Pat String exists already.")
+    bot.message_loop({'chat': handle, 'callback_query': on_callback_query})
+    print('I am listening ...')
 
-while 1:
-    time.sleep(10)
+    while 1:
+        time.sleep(10)
