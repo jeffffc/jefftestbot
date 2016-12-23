@@ -30,7 +30,7 @@ def on_callback_query(msg):
         starturl="telegram.me/" + BOT_USERNAME + "?start=help"
         bot.answerCallbackQuery(query_id, url=starturl)
         
-def help():
+def help(chat_type):
         helpmsg = "Availble Commands:\n"
         helpmsg += "`/pat: [single use or by reply], pats someone`\n"
         helpmsg += "`/patstat: chat your pat history`\n"
@@ -281,7 +281,7 @@ def handle(msg):
             db2.commit()
             bot.sendMessage(chat_id, "Feedback sent!", reply_to_message_id=reply_to)
         elif real_command == 'help':
-            help()
+            help(chat_type)
 #            helpmsg = "Availble Commands:\n"
 #            helpmsg += "`/pat: [single use or by reply], pats someone`\n"
 #            helpmsg += "`/patstat: chat your pat history`\n"
