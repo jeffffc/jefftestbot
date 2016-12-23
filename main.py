@@ -13,6 +13,10 @@ import json
 
 from config import *
 
+def nopm(chat_id, from_user, msgid):
+    nopmmsg = from_user + ", Please start me at PM first."
+    bot.sendMessage(chat_id, nopmmsg, reply_to_message_id=msgid)
+
 def handle(msg):
     msg2 = telepot.namedtuple.Message(**msg)
     chat_id = msg['chat']['id']
@@ -53,6 +57,16 @@ def handle(msg):
     cursor.execute("set names utf8mb4")
     cursor.execute("set character set utf8mb4")
     cursor.execute("set character_set_connection=utf8mb4")
+
+#    try:
+#        started = bot.getChat(from_id)
+#        if started:
+#            print(started)
+#            print("started")
+#        else:
+#            print("not started")
+#    except:
+#        print("error")
 
     try:
         if chat_type == 'group' or chat_type == 'supergroup':
@@ -239,9 +253,14 @@ def handle(msg):
             helpmsg += "`/myloc <location>: set your current location for using /now`\n"
             helpmsg += "`/now (<location>): return current weather for your already set location (or inputted location)`\n"
             helpmsg += "`/feedback <message>: send feedback to me!`"
-            bot.sendMessage(from_id, helpmsg, parse_mode='Markdown')
-            if chat_type != 'private':
-                bot.sendMessage(chat_id, "I've sent you the help message in private.", reply_to_message_id=reply_to)
+            try:
+                bot.sendMessage(from_id, helpmsg, parse_mode='Markdown')
+                if chat_type != 'private':
+                    bot.sendMessage(chat_id, "I've sent you the help message in private.", reply_to_message_id=reply_to)
+            except:
+                if chat_type != 'private':
+#                    bot.sendMessage(chat_id, "Please start me in PM first.", reply_to_message_id=msgid)
+                    nopm(chat_id, from_user, msgid)
         elif real_command == 'patstat':
             cursor2 = db2.cursor(pymysql.cursors.DictCursor)
             checkpatcount=("select patted, pattedby from user where telegramid=%d" % from_id)
