@@ -218,7 +218,7 @@ def handle(msg):
         elif real_command == 'start':
             if commandonly == 0:
                 if after_command == 'help':
-                    bot.sendMessage(chat_id, "Use /help!")
+                    help(chat_type, from_id, chat_id, reply_to, from_user, msgid)
         elif real_command == 'myloc':
             if commandonly == 1:
                 bot.sendMessage(chat_id, "Please use `/myloc <location>` to set your location.", reply_to_message_id=reply_to, parse_mode='Markdown')
