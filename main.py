@@ -4,6 +4,7 @@ import datetime
 import pytz
 import telepot
 import telepot.namedtuple
+from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 import random
 import _mysql
 import pymysql
@@ -15,7 +16,19 @@ from config import *
 
 def nopm(chat_id, from_user, msgid):
     nopmmsg = from_user + ", Please start me at PM first."
-    bot.sendMessage(chat_id, nopmmsg, reply_to_message_id=msgid)
+    buttontext = "Click to Start Me!"
+    callbacktext = "start"
+    bot.sendMessage(chat_id, nopmmsg, reply_to_message_id=msgid, reply_markup=button(buttontext, callbacktext))
+
+def button(buttontext, callbacktext):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=buttontext, callback_data=callbacktext)]])
+    return keyboard
+
+def on_callback_query(msg):
+    query_id, from_id, query_data = telepot.glance(msg, flavor='callback_query')
+    if query_data == 'start':
+        starturl="telegram.me/" + BOT_USERNAME + "?start=help"
+        bot.answerCallbackQuery(query_id, url=starturl)
 
 def handle(msg):
     msg2 = telepot.namedtuple.Message(**msg)
@@ -151,7 +164,8 @@ def handle(msg):
             splitstring = command.split(' ', 1)
             after_command = splitstring[1]
             real_command = splitstring[0][1:]
-            if real_command[-13:] == BOT_USERNAME:
+            botusername = "@" + BOT_USERNAME
+            if real_command[-13:] == botusername:
                real_command = real_command.split('@', 1)
                real_command = real_command[0]
                real_command = real_command.lower()
@@ -185,6 +199,10 @@ def handle(msg):
                     db2.commit()
                 except:
                     print("ERROR AT ADD PAT COUNT")
+        elif real_command == 'start':
+            if commandonly == 0:
+                if after_command == 'help':
+                    bot.sendMessage(chat_id, "Use /help!")
         elif real_command == 'myloc':
             if commandonly == 1:
                 bot.sendMessage(chat_id, "Please use `/myloc <location>` to set your location.", reply_to_message_id=reply_to, parse_mode='Markdown')
@@ -372,7 +390,7 @@ try:
     db2.close()
 except:
     print("Default Pat String exists already.")
-bot.message_loop(handle)
+bot.message_loop({'chat': handle, 'callback_query': on_callback_query})
 print('I am listening ...')
 
 while 1:
