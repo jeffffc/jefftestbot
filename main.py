@@ -287,8 +287,10 @@ def handle(msg):
                    result = cursor.fetchone()
                 sqlmsg = sqlmsg + "`num of affected rows: "+ str(cursor.rowcount) + "`"
                 bot.sendMessage(chat_id, sqlmsg, reply_to_message_id=reply_to, parse_mode="Markdown")
-            except:
-                bot.sendMessage(chat_id, "SQL ERROR", reply_to_message_id=reply_to)
+            except pymysql.MySQLError as e:
+                code, errormsg = e.args
+                sqlerror = "`MySQL ErrorCode: %s\nErrorMsg: %s`" % (code, errormsg)
+                bot.sendMessage(chat_id, sqlerror, reply_to_message_id=reply_to, parse_mode='Markdown')
         elif real_command == 'now':
             try:
                  if commandonly == 1:
