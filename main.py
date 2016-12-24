@@ -28,7 +28,7 @@ def checkbanned(from_id):
         banned = cursor.fetchall()
         for row in banned:
             ban = row[0]
-        print("Ban status: %s" % ban)
+#        print("Ban status: %s" % ban)
         db2.commit()
         return ban
     except:
@@ -45,9 +45,25 @@ def jban(chat_id, msgid, banid):
         bannow = "update user set banned=1 where telegramid=%d" % banid
         try:
             cursor.execute(bannow)
+#            printmsg += "User %d banned." % banid
             bot.sendMessage(chat_id, "Ban successful", reply_to_message_id=msgid)
         except:
-            bot.sendMessage(chat_id, "Gailed. Try again.", reply_to_message_id=msgid)
+            bot.sendMessage(chat_id, "Failed. Try again.", reply_to_message_id=msgid)
+
+def junban(chat_id, msgid, unbanid):
+    unbanid = int(unbanid)
+    if checkbanned(unbanid) == 0:
+        bot.sendMessage(chat_id, "User was not banned", reply_to_message_id=msgid)
+    elif checkbanned(unbanid) == -1:
+        bot.sendMessage(chat_id, "ID wrong", reply_to_message_id=msgid)
+    else:
+        unbannow = "update user set banned=0 where telegramid=%d" % unbanid
+        try:
+            cursor.execute(unbannow)
+#            printmsg += "User %d unbanned." % unbanid
+            bot.sendMessage(chat_id, "Unban Successful", reply_to_message_id=msgid)
+        except:
+            bot.sendMessage(chat_id, "Failed. Try again.", reply_to_message_id=msgid)
 
 def nopm(chat_id, from_user, msgid):
     nopmmsg = from_user + ", Please start me at PM first."
@@ -429,13 +445,26 @@ def handle(msg):
                 bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
                 return
             if commandonly == 1:
-                bot.sendMessage(chat_id, "Use !jban <id>", reply_to_message_id=msgid)
+                bot.sendMessage(chat_id, "Use `!jban <id>`", reply_to_message_id=msgid, parse_mode='Markdown')
                 return
             if after_command.isdigit():
                 jban(chat_id, msgid, after_command)
             else:
                 bot.sendMessage(chat_id, "Not a valid id", reply_to_message_id=msgid)
                 return
+        elif real_command == 'junban':
+            if from_id != ADMIN_ID:
+                bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
+                return
+            if commandonly == 1:
+                bot.sendMessage(chat_id, "Use `!junban <id>`", reply_to_message_id=msgid, parse_mode='Markdown')
+                return
+            if after_command.isdigit():
+                junban(chat_id, msgid, after_command)
+            else:
+                bot.sendMessage(chat_id, "Not a valid id", reply_to_message_id=msgid)
+                return
+
 
     db2.close()
     printmsg = "New Command '%s%s' from '%s (%d)'" % (using, real_command, from_user, from_id)
