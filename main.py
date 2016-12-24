@@ -45,6 +45,7 @@ def jban(chat_id, msgid, banid):
         bannow = "update user set banned=1 where telegramid=%d" % banid
         try:
             cursor.execute(bannow)
+            db2.commit()
 #            printmsg += "User %d banned." % banid
             bot.sendMessage(chat_id, "Ban successful", reply_to_message_id=msgid)
         except:
@@ -60,10 +61,24 @@ def junban(chat_id, msgid, unbanid):
         unbannow = "update user set banned=0 where telegramid=%d" % unbanid
         try:
             cursor.execute(unbannow)
+            db2.commit()
 #            printmsg += "User %d unbanned." % unbanid
             bot.sendMessage(chat_id, "Unban Successful", reply_to_message_id=msgid)
         except:
             bot.sendMessage(chat_id, "Failed. Try again.", reply_to_message_id=msgid)
+
+def jbanlist(chat_id, msgid):
+    banlistsql = "select name, username, telegramid from user where banned=1"
+    cursor.execute(banlistsql)
+    db2.commit()
+    result=cursor.fetchone()
+    sqlmsg = "Banned users:\n"
+    if result == None:
+        sqlmsg  = "No banned users"
+    while result is not None:
+        sqlmsg+="`"+str(result)+"`\n"
+        result=cursor.fetchone()
+    bot.sendMessage(chat_id, sqlmsg, reply_to_message_id=msgid, parse_mode='Markdown')
 
 def nopm(chat_id, from_user, msgid):
     nopmmsg = from_user + ", Please start me at PM first."
@@ -464,6 +479,12 @@ def handle(msg):
             else:
                 bot.sendMessage(chat_id, "Not a valid id", reply_to_message_id=msgid)
                 return
+        elif real_command == 'jbanlist':
+            if from_id != ADMIN_ID:
+                bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
+                return
+            if commandonly == 1:
+                jbanlist(chat_id, msgid)
 
 
     db2.close()
