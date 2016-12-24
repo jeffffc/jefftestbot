@@ -28,11 +28,9 @@ def checkbanned(from_id):
         banned = cursor.fetchall()
         for row in banned:
             ban = row[0]
-#        print("Ban status: %s" % ban)
         db2.commit()
         return ban
     except:
-#        print("id wrong")
         return -1
 
 def jban(chat_id, msgid, banid):
@@ -46,7 +44,6 @@ def jban(chat_id, msgid, banid):
         try:
             cursor.execute(bannow)
             db2.commit()
-#            printmsg += "User %d banned." % banid
             bot.sendMessage(chat_id, "Ban successful", reply_to_message_id=msgid)
         except:
             bot.sendMessage(chat_id, "Failed. Try again.", reply_to_message_id=msgid)
@@ -62,7 +59,6 @@ def junban(chat_id, msgid, unbanid):
         try:
             cursor.execute(unbannow)
             db2.commit()
-#            printmsg += "User %d unbanned." % unbanid
             bot.sendMessage(chat_id, "Unban Successful", reply_to_message_id=msgid)
         except:
             bot.sendMessage(chat_id, "Failed. Try again.", reply_to_message_id=msgid)
@@ -109,9 +105,8 @@ def help(chat_type, from_id, chat_id, reply_to, from_user, msgid):
                 bot.sendMessage(chat_id, "I've sent you the help message in private.", reply_to_message_id=reply_to)
         except:
             if chat_type != 'private':
-#                bot.sendMessage(chat_id, "Please start me in PM first.", reply_to_message_id=msgid)
                 nopm(chat_id, from_user, msgid)
-    
+
 def handle(msg):
     msg2 = telepot.namedtuple.Message(**msg)
     chat_id = msg['chat']['id']
@@ -159,16 +154,6 @@ def handle(msg):
     if bye == 1:
         return
 
-#    try:
-#        started = bot.getChat(from_id)
-#        if started:
-#            print(started)
-#            print("started")
-#        else:
-#            print("not started")
-#    except:
-#        print("error")
-
     try:
         if chat_type == 'group' or chat_type == 'supergroup':
             group_id = chat_id
@@ -205,7 +190,6 @@ def handle(msg):
             else:
                 updateuser = "update user set name='%s', username='%s' where telegramid=%d" % (from_user, from_username, from_id)
             cursor.execute(updateuser)
-#            cursor.execute("update user set name=%s, username=%s where telegramid=%d", from_username, from_id)
             db2.commit()
     except:
         print("ERROR at add/update user")
@@ -367,20 +351,6 @@ def handle(msg):
             bot.sendMessage(chat_id, "Feedback sent!", reply_to_message_id=reply_to)
         elif real_command == 'help':
             help(chat_type, from_id, chat_id, reply_to, from_user, msgid)
-#            helpmsg = "Availble Commands:\n"
-#            helpmsg += "`/pat: [single use or by reply], pats someone`\n"
-#            helpmsg += "`/patstat: chat your pat history`\n"
-#            helpmsg += "`/myloc <location>: set your current location for using /now`\n"
-#            helpmsg += "`/now (<location>): return current weather for your already set location (or inputted location)`\n"
-#            helpmsg += "`/feedback <message>: send feedback to me!`"
-#            try:
-#                bot.sendMessage(from_id, helpmsg, parse_mode='Markdown')
-#                if chat_type != 'private':
-#                    bot.sendMessage(chat_id, "I've sent you the help message in private.", reply_to_message_id=reply_to)
-#            except:
-#                if chat_type != 'private':
-##                    bot.sendMessage(chat_id, "Please start me in PM first.", reply_to_message_id=msgid)
-#                    nopm(chat_id, from_user, msgid)
         elif real_command == 'patstat':
             cursor2 = db2.cursor(pymysql.cursors.DictCursor)
             checkpatcount=("select patted, pattedby from user where telegramid=%d" % from_id)
