@@ -32,7 +32,7 @@ def checkbanned(from_id):
         db2.commit()
         return ban
     except:
-        print("id wrong")
+#        print("id wrong")
         return -1
 
 def jban(chat_id, msgid, banid):
@@ -165,12 +165,14 @@ def handle(msg):
                 adduser = "insert into user (`name`, `telegramid`) values ('%s', %d)" % (from_user, from_id)
             else:
                 adduser =  "insert into user (`name`,  `username`, `telegramid`) values ('%s', '%s', %d)" % (from_user, from_username, from_id)
-            print(adduser)
             cursor.execute(adduser)
             db2.commit()
         else:
             newuser = 0
-            updateuser = "update user set name='%s', username='%s' where telegramid=%d" % (from_user, from_username, from_id)
+            if nousername == 1:
+                updateuser = "update user set name='%s', username=None, where telegramid=%d" % (from_user, from_id)
+            else:
+                updateuser = "update user set name='%s', username='%s' where telegramid=%d" % (from_user, from_username, from_id)
             cursor.execute(updateuser)
 #            cursor.execute("update user set name=%s, username=%s where telegramid=%d", from_username, from_id)
             db2.commit()
@@ -209,11 +211,17 @@ def handle(msg):
             checkreplyuserexist = "select * from user where telegramid=%d" % to_user_id
             rowcount=cursor.execute(checkreplyuserexist)
             if rowcount == 0:
-                addreplyuser="insert into user (name, username, telegramid) values ('%s', '%s', %d)" % (to_user, to_user_username, to_user_id)
+                if nousername == 1:
+                    addreplyuser = "insert into user (name, telegramid) values ('%s', %d)" % (to_user, to_user_id)
+                else:
+                    addreplyuser = "insert into user (name, username, telegramid) values ('%s', '%s', %d)" % (to_user, to_user_username, to_user_id)
                 cursor.execute(addreplyuser)
                 db2.commit()
             else:
-                editreplyuser="update user set name='%s', username='%s' where telegramid=%d" % (to_user, to_user_username, to_user_id)
+                if nousername == 1:
+                    editreplyuser = "update user set name='%s', username=None where telegramid=%d" % (to_user, to_user_id)
+                else:
+                    editreplyuser = "update user set name='%s', username='%s' where telegramid=%d" % (to_user, to_user_username, to_user_id)
                 cursor.execute(editreplyuser)
                 db2.commit()
         except:
