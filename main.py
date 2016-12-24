@@ -11,8 +11,43 @@ import pymysql
 import urllib
 import requests
 import json
+##import go
+import sys
+
+##a = go.a
+##b = go.b
+##status = go.status
 
 from config import *
+
+def checkbanned(from_id):
+    from_id =int(from_id)
+    bansql = "select banned from user where telegramid=%d" % from_id
+    cursor.execute(bansql)
+    try:
+        banned = cursor.fetchall()
+        for row in banned:
+            ban = row[0]
+        print("Ban status: %s" % ban)
+        db2.commit()
+        return ban
+    except:
+        print("id wrong")
+        return -1
+
+def jban(chat_id, msgid, banid):
+    banid = int(banid)
+    if checkbanned(banid) == 1:
+        bot.sendMessage(chat_id, "User banned already", reply_to_message_id=msgid)
+    elif checkbanned(banid) == -1:
+        bot.sendMessage(chat_id, "ID wrong", reply_to_message_id=msgid)
+    else:
+        bannow = "update user set banned=1 where telegramid=%d" % banid
+        try:
+            cursor.execute(bannow)
+            bot.sendMessage(chat_id, "Ban successful", reply_to_message_id=msgid)
+        except:
+            bot.sendMessage(chat_id, "Gailed. Try again.", reply_to_message_id=msgid)
 
 def nopm(chat_id, from_user, msgid):
     nopmmsg = from_user + ", Please start me at PM first."
@@ -29,7 +64,7 @@ def on_callback_query(msg):
     if query_data == 'start':
         starturl="telegram.me/" + BOT_USERNAME + "?start=help"
         bot.answerCallbackQuery(query_id, url=starturl)
-        
+
 def help(chat_type, from_id, chat_id, reply_to, from_user, msgid):
         helpmsg = "Availble Commands:\n"
         helpmsg += "`/pat: [single use or by reply], pats someone`\n"
@@ -62,9 +97,11 @@ def handle(msg):
     from_id2 = msg2.from_.id
     from_username2 = msg2.from_.username
     if from_username2 == None:
-        from_username = -1
+        from_username = None
+        nousername = 1
     else:
         from_username = from_username2
+        nousername = 0
     msgid = msg['message_id']
     msgid2 = msg2.message_id
     reply_to = msgid
@@ -86,6 +123,10 @@ def handle(msg):
     cursor.execute("set names utf8mb4")
     cursor.execute("set character set utf8mb4")
     cursor.execute("set character_set_connection=utf8mb4")
+
+    bye = checkbanned(from_id)
+    if bye == 1:
+        return
 
 #    try:
 #        started = bot.getChat(from_id)
@@ -120,13 +161,18 @@ def handle(msg):
         userexist = cursor.execute(usersql)
         if userexist == 0:
             newuser = 1
-            adduser =  "insert into user (`name`,  `username`, `telegramid`, `patted`, `pattedby`) values ('%s', '%s', %d, 0, 0)" % (from_user, from_username, from_id)
+            if nousername == 1:
+                adduser = "insert into user (`name`, `telegramid`) values ('%s', %d)" % (from_user, from_id)
+            else:
+                adduser =  "insert into user (`name`,  `username`, `telegramid`) values ('%s', '%s', %d)" % (from_user, from_username, from_id)
+            print(adduser)
             cursor.execute(adduser)
             db2.commit()
         else:
             newuser = 0
             updateuser = "update user set name='%s', username='%s' where telegramid=%d" % (from_user, from_username, from_id)
             cursor.execute(updateuser)
+#            cursor.execute("update user set name=%s, username=%s where telegramid=%d", from_username, from_id)
             db2.commit()
     except:
         print("ERROR at add/update user")
@@ -306,7 +352,7 @@ def handle(msg):
                patsby = row["pattedby"]
                patcountstr="Hello %s!\nYou have patted others `%d` times and got patted by others `%d` times." % (from_user, pats, patsby)
                bot.sendMessage(chat_id, patcountstr, reply_to_message_id=reply_to, parse_mode="Markdown")
-        elif real_command == 'sql':
+        elif real_command == 'jsql':
             if from_id != ADMIN_ID:
                 bot.sendMessage(chat_id, ("You are not %s!" % ADMIN_NAME), reply_to_message_id=reply_to)
                 return
@@ -370,6 +416,19 @@ def handle(msg):
             except:
                 print("LOL")
                 bot.sendMessage(chat_id, "Something wrong with your location...", reply_to_message_id=reply_to)
+        elif real_command == 'jban':
+            if from_id != ADMIN_ID:
+                bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
+                return
+            if commandonly == 1:
+                bot.sendMessage(chat_id, "Use !jban <id>", reply_to_message_id=msgid)
+                return
+            if after_command.isdigit():
+                jban(chat_id, msgid, after_command)
+            else:
+                bot.sendMessage(chat_id, "Not a valid id", reply_to_message_id=msgid)
+                return
+
     db2.close()
     printmsg = "New Command '%s%s' from '%s (%d)'" % (using, real_command, from_user, from_id)
     printmsg += "\n"
@@ -388,11 +447,12 @@ def handle(msg):
     with open("log.txt", "a") as logging:
         logging.write(printmsg + "\n")
 
-def main():
-    bot = telepot.Bot(BOT_TOKEN)
-    db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8')
-    cursor = db2.cursor()
 
+bot = telepot.Bot(BOT_TOKEN)
+db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8')
+cursor = db2.cursor()
+
+def main():
     cursor.execute("set names utf8mb4")
     cursor.execute("set character set utf8mb4")
     cursor.execute("set character_set_connection=utf8mb4")
@@ -408,8 +468,19 @@ def main():
         db2.close()
     except:
         print("Default Pat String exists already.")
-    bot.message_loop({'chat': handle, 'callback_query': on_callback_query})
+    t = bot.message_loop({'chat': handle, 'callback_query': on_callback_query})
     print('I am listening ...')
 
     while 1:
+##        go.check_update(a, b)
+##        print("here")
+##        status = go.status
+##        print(status)
+##        if status == 1:
+##            print("UPDATED... TERMINATING MAIN AND COPY NEW FILES")
+##            time.sleep(5)
+##            return
+###            break
         time.sleep(10)
+
+main()
