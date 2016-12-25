@@ -14,6 +14,33 @@ import json
 
 from config import *
 
+def google(querytype, querytext, chat_id, msg_id):
+    if commandonly == 1:
+         bot.sendMessage(chat_id, "Please use `!gg <QUERY>` to search.", reply_to_message_id=reply_to, parse_mode='Markdown')
+         return
+    url = "https://www.googleapis.com/customsearch/v1?parameters"
+    apikey = GOOGLE_API
+    cseid = CSE_ID
+    url += "?key=" + apikey
+    url += "&cx=" +  CSE_ID
+    url += "&q=" + urllib.quote_plus(after_command)
+    if querytype == 'text':
+        print("Searching text")
+    elif querytype == 'image':
+        print("Searching image")
+        url += "&searchType=image"
+#    url = url.replace(" ", "%20")
+#    url = url.replace(",", "%2C")
+    response = requests.get(url)
+    result = response.json()
+    
+    s_title = result['items'][0]['title']
+    s_link = result['items'][0]['link']
+    gmsg = "Search Result for `%s`:\n" % after_command
+    gmsg += "*%s*\n" % s_title
+    gmsg += "%s" % s_link
+    bot.sendMessage(chat_id, gmsg, reply_to_message_id=msgid, parse_mode='Markdown')
+    
 def checkbanned(from_id):
     from_id =int(from_id)
     bansql = "select banned from user where telegramid=%d" % from_id
@@ -459,7 +486,8 @@ def handle(msg):
                 return
             if commandonly == 1:
                 jbanlist(chat_id, msgid)
-
+        elif real_command == 'gg':
+            google('text', after_command, chat_id, msgid)
 
     db2.close()
     printmsg = "New Command '%s%s' from '%s (%d)'" % (using, real_command, from_user, from_id)

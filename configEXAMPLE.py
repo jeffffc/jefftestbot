@@ -32,8 +32,11 @@ ACCU_API_2 = ""
 
 ###GOOGLE CUSTOM SEARCH ENGINE API DETAILS
 # ENTER YOUR GOOGLE CSE API KEY
-# OPTAINED AT https://cse.google.com/
+# OPTAINED AT https://developers.google.com/apis-explorer/
 GOOGLE_API = ""
+# ENTER YOUR CSE ID
+# OPTAINED AT https://cse.google.com/
+CSE_ID = ""
 
 ### CREATE TABLE SQL, DO NOT AMEND###
 SQL_CREATE_TABLE_1 = "CREATE TABLE IF NOT EXISTS `feedback` (`id` int(11) NOT NULL AUTO_INCREMENT, `message` mediumtext NOT NULL, `name` varchar(200) NOT NULL, `username` varchar(100) NOT NULL, `telegramid` int(20) NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4"
