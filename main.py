@@ -121,7 +121,8 @@ def help(chat_type, from_id, chat_id, reply_to, from_user, msgid):
         helpmsg += "`/patstat: chat your pat history`\n"
         helpmsg += "`/myloc <location>: set your current location for using /now`\n"
         helpmsg += "`/now (<location>): return current weather for your already set location (or inputted location)`\n"
-        helpmsg += "`/feedback <message>: send feedback to me!`"
+        helpmsg += "`/feedback <message>: send feedback to me!`\n"
+        helpmsg += "`/gg <query>: search google, returns first result`"
         try:
             bot.sendMessage(from_id, helpmsg, parse_mode='Markdown')
             if chat_type != 'private':
