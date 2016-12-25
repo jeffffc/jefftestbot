@@ -11,12 +11,6 @@ import pymysql
 import urllib
 import requests
 import json
-##import go
-import sys
-
-##a = go.a
-##b = go.b
-##status = go.status
 
 from config import *
 
@@ -506,19 +500,10 @@ def main():
         db2.close()
     except:
         print("Default Pat String exists already.")
-    t = bot.message_loop({'chat': handle, 'callback_query': on_callback_query})
-    print('I am listening ...')
+    bot.message_loop({'chat': handle, 'callback_query': on_callback_query})
+    print('Initiating... Start fetching messages from telegram...\n')
 
     while 1:
-##        go.check_update(a, b)
-##        print("here")
-##        status = go.status
-##        print(status)
-##        if status == 1:
-##            print("UPDATED... TERMINATING MAIN AND COPY NEW FILES")
-##            time.sleep(5)
-##            return
-###            break
         time.sleep(10)
 
 main()
