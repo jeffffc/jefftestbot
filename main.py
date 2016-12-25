@@ -175,21 +175,21 @@ def handle(msg):
     try:
         usersql = "select * from user where telegramid=%d" % from_id
         userexist = cursor.execute(usersql)
-        from_user = db2.escape_string(from_user)
+        from_user_e = db2.escape_string(from_user)
         if userexist == 0:
             newuser = 1
             if nousername == 1:
-                adduser = "insert into user (`name`, `telegramid`) values ('%s', %d)" % (from_user, from_id)
+                adduser = "insert into user (`name`, `telegramid`) values ('%s', %d)" % (from_user_e, from_id)
             else:
-                adduser =  "insert into user (`name`,  `username`, `telegramid`) values ('%s', '%s', %d)" % (from_user, from_username, from_id)
+                adduser =  "insert into user (`name`,  `username`, `telegramid`) values ('%s', '%s', %d)" % (from_user_e, from_username, from_id)
             cursor.execute(adduser)
             db2.commit()
         else:
             newuser = 0
             if nousername == 1:
-                updateuser = "update user set name='%s', username=None, where telegramid=%d" % (from_user, from_id)
+                updateuser = "update user set name='%s', username=None, where telegramid=%d" % (from_user_e, from_id)
             else:
-                updateuser = "update user set name='%s', username='%s' where telegramid=%d" % (from_user, from_username, from_id)
+                updateuser = "update user set name='%s', username='%s' where telegramid=%d" % (from_user_e, from_username, from_id)
             cursor.execute(updateuser)
             db2.commit()
     except:
@@ -226,19 +226,19 @@ def handle(msg):
         try:
             checkreplyuserexist = "select * from user where telegramid=%d" % to_user_id
             rowcount=cursor.execute(checkreplyuserexist)
-            to_user = db2.escape_string(to_user)
+            to_user_e = db2.escape_string(to_user)
             if rowcount == 0:
                 if nousername == 1:
-                    addreplyuser = "insert into user (name, telegramid) values ('%s', %d)" % (to_user, to_user_id)
+                    addreplyuser = "insert into user (name, telegramid) values ('%s', %d)" % (to_user_e, to_user_id)
                 else:
-                    addreplyuser = "insert into user (name, username, telegramid) values ('%s', '%s', %d)" % (to_user, to_user_username, to_user_id)
+                    addreplyuser = "insert into user (name, username, telegramid) values ('%s', '%s', %d)" % (to_user_e, to_user_username, to_user_id)
                 cursor.execute(addreplyuser)
                 db2.commit()
             else:
                 if nousername == 1:
-                    editreplyuser = "update user set name='%s', username=None where telegramid=%d" % (to_user, to_user_id)
+                    editreplyuser = "update user set name='%s', username=None where telegramid=%d" % (to_user_e, to_user_id)
                 else:
-                    editreplyuser = "update user set name='%s', username='%s' where telegramid=%d" % (to_user, to_user_username, to_user_id)
+                    editreplyuser = "update user set name='%s', username='%s' where telegramid=%d" % (to_user_e, to_user_username, to_user_id)
                 cursor.execute(editreplyuser)
                 db2.commit()
         except:
