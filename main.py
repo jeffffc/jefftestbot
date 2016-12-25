@@ -14,16 +14,16 @@ import json
 
 from config import *
 
-def google(querytype, querytext, chat_id, msg_id):
+def google(commandonly, querytype, querytext, chat_id, msgid):
     if commandonly == 1:
          bot.sendMessage(chat_id, "Please use `!gg <QUERY>` to search.", reply_to_message_id=reply_to, parse_mode='Markdown')
          return
-    url = "https://www.googleapis.com/customsearch/v1?parameters"
+    url = "https://www.googleapis.com/customsearch/v1?"
     apikey = GOOGLE_API
     cseid = CSE_ID
-    url += "?key=" + apikey
+    url += "key=" + apikey
     url += "&cx=" +  CSE_ID
-    url += "&q=" + urllib.quote_plus(after_command)
+    url += "&q=" + urllib.parse.quote(querytext)
     if querytype == 'text':
         print("Searching text")
     elif querytype == 'image':
@@ -31,15 +31,17 @@ def google(querytype, querytext, chat_id, msg_id):
         url += "&searchType=image"
 #    url = url.replace(" ", "%20")
 #    url = url.replace(",", "%2C")
+    print(url)
     response = requests.get(url)
     result = response.json()
-    
+#    print(result)
     s_title = result['items'][0]['title']
     s_link = result['items'][0]['link']
-    gmsg = "Search Result for `%s`:\n" % after_command
-    gmsg += "*%s*\n" % s_title
-    gmsg += "%s" % s_link
-    bot.sendMessage(chat_id, gmsg, reply_to_message_id=msgid, parse_mode='Markdown')
+    gmsg = "Search Result for <code>%s</code>:\n" % querytext
+    gmsg += "<code>%s</code>\n" % s_title
+    gmsg += "<a href='%s'>Click here</a>" % s_link
+    print(gmsg)
+    bot.sendMessage(chat_id, gmsg, reply_to_message_id=msgid, parse_mode='HTML', disable_web_page_preview='True')
     
 def checkbanned(from_id):
     from_id =int(from_id)
@@ -264,7 +266,7 @@ def handle(msg):
                 db2.commit()
         except:
             print("ERROR at add/edit reply user")
-
+    
     if command[:1] == '/' or command[:1] == '!':
         multiple_args = command.split(' ')
         if len(multiple_args) > 1:
@@ -487,7 +489,7 @@ def handle(msg):
             if commandonly == 1:
                 jbanlist(chat_id, msgid)
         elif real_command == 'gg':
-            google('text', after_command, chat_id, msgid)
+            google(commandonly, 'text', after_command, chat_id, msgid)
 
     db2.close()
     printmsg = "New Command '%s%s' from '%s (%d)'" % (using, real_command, from_user, from_id)
