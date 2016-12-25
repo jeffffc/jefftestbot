@@ -157,7 +157,7 @@ def handle(msg):
     try:
         if chat_type == 'group' or chat_type == 'supergroup':
             group_id = chat_id
-            group_name = msg['chat']['title']
+            group_name = db2.escape_string(msg['chat']['title'])
             checkgroupexist = "select * from `group` where groupid=%d" % group_id
             groupcount = cursor.execute(checkgroupexist)
             if groupcount == 0:
@@ -175,6 +175,7 @@ def handle(msg):
     try:
         usersql = "select * from user where telegramid=%d" % from_id
         userexist = cursor.execute(usersql)
+        from_user = db2.escape_string(from_user)
         if userexist == 0:
             newuser = 1
             if nousername == 1:
@@ -225,6 +226,7 @@ def handle(msg):
         try:
             checkreplyuserexist = "select * from user where telegramid=%d" % to_user_id
             rowcount=cursor.execute(checkreplyuserexist)
+            to_user = db2.escape_string(to_user)
             if rowcount == 0:
                 if nousername == 1:
                     addreplyuser = "insert into user (name, telegramid) values ('%s', %d)" % (to_user, to_user_id)
@@ -292,7 +294,7 @@ def handle(msg):
             if commandonly == 1:
                 bot.sendMessage(chat_id, "Please use `/myloc <location>` to set your location.", reply_to_message_id=reply_to, parse_mode='Markdown')
                 return
-            setloc = after_command
+            setloc = db2.escape_string(after_command)
             setlocsql = "update user set loc='%s' where telegramid=%d" % (setloc, from_id)
             cursor.execute(setlocsql)
             db2.commit()
@@ -344,7 +346,7 @@ def handle(msg):
                  except:
                      bot.sendMessage(chat_id, "Send Failed", reply_to_message_id=msgid)
         elif real_command == 'feedback':
-            fbmessage = after_command
+            fbmessage = db2.escape_string(after_command)
             fbsql = "insert into feedback (message, name, username, telegramid) values ('%s', '%s', '%s', %d)" % (fbmessage, from_user, from_username, from_id)
             cursor.execute(fbsql)
             db2.commit()
