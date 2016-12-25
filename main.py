@@ -410,27 +410,18 @@ def handle(msg):
                  result = response.json()
                  locationkey = result[0]['Key']
                  place = result[0]['LocalizedName'] + ", " + result[0]['AdministrativeArea']['LocalizedName'] + ", " + result[0]['Country']['LocalizedName']
-                 localtzname = result[0]['TimeZone']['Name']
-                 localtz = pytz.timezone(localtzname)
-                 local = str(datetime.datetime.now(localtz))
                  url = "http://dataservice.accuweather.com/currentconditions/v1/"
                  url += locationkey
                  url += "?apikey=" + apikey
                  response = requests.get(url)
                  result = response.json()
-                 localdate = local.split(" ", 1)[0]
-                 localtimeandzone = local.split(" ", 1)[1]
-                 localtime = localtimeandzone.split("+", 1)[0]
-                 localtime = localtime[:8]
-                 localzone = localtimeandzone.split("+", 1)[1]
                  weather = result[0]['WeatherText']
                  ctemp = str(result[0]['Temperature']['Metric']['Value']) + "°" + result[0]['Temperature']['Metric']['Unit']
                  ftemp = str(result[0]['Temperature']['Imperial']['Value']) + "°" + result[0]['Temperature']['Imperial']['Unit']
-                 wmsg = "Currently at: %s" % place
-                 wmsg += "\nTemperature:`\t%s or %s`" % (ctemp, ftemp)
-                 wmsg += "\nDescription:`\t%s`" % weather
-                 wmsg += "\nLocal Time:`\t%s (UTC+%s)`" % (localtime, localzone)
-                 bot.sendMessage(chat_id, wmsg, reply_to_message_id=reply_to, parse_mode='Markdown')
+                 wmsg = "Current weather for: %s" % place
+                 wmsg += "\nTemperature:\t%s or %s" % (ctemp, ftemp)
+                 wmsg += "\nDescription:\t%s" % weather
+                 bot.sendMessage(chat_id, wmsg, reply_to_message_id=reply_to)
             except:
                 print("LOL")
                 bot.sendMessage(chat_id, "Something wrong with your location...", reply_to_message_id=reply_to)
