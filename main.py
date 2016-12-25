@@ -420,16 +420,15 @@ def handle(msg):
                  result = response.json()
                  localdate = local.split(" ", 1)[0]
                  localtimeandzone = local.split(" ", 1)[1]
-                 localtime = localtimeandzone.split("+", 1)[0]
-                 localtime = localtime[:8]
-                 localzone = localtimeandzone.split("+", 1)[1]
+                 localtime = localtimeandzone[:8]
+                 localzone = localtimeandzone[-6:]
                  weather = result[0]['WeatherText']
                  ctemp = str(result[0]['Temperature']['Metric']['Value']) + "°" + result[0]['Temperature']['Metric']['Unit']
                  ftemp = str(result[0]['Temperature']['Imperial']['Value']) + "°" + result[0]['Temperature']['Imperial']['Unit']
                  wmsg = "Currently at: %s" % place
                  wmsg += "\nTemperature:`\t%s or %s`" % (ctemp, ftemp)
                  wmsg += "\nDescription:`\t%s`" % weather
-                 wmsg += "\nLocal Time:`\t%s (UTC+%s)`" % (localtime, localzone)
+                 wmsg += "\nLocal Time:`\t%s (UTC%s)`" % (localtime, localzone)
                  bot.sendMessage(chat_id, wmsg, reply_to_message_id=reply_to, parse_mode='Markdown')
             except:
                 print("LOL")
