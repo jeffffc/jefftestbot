@@ -11,8 +11,33 @@ import pymysql
 import urllib
 import requests
 import json
-
+import langcodes
+#from bs4 import BeautifulSoup
+from html.parser import HTMLParser
+from google.cloud import translate
 from config import *
+
+def t(text):
+    client = translate.Client()
+    parser = HTMLParser()
+    result = client.translate(text, target_language='en')
+    translated = parser.unescape(result['translatedText'])
+    original_langcode = result['detectedSourceLanguage']
+    x = langcodes.Language.get(original_langcode)
+    lang = x.language_name()
+    if x.region_name() != None:
+        lang += " (" + x.region_name() + ")"
+    if x.script_name() != None:
+        lang += " - " + x.script_name()
+#    str = lang + " " + region + " " + script
+#    original_langname = langcodes.Language.make(language=original_langcode).language_name()
+
+
+#    output = "Translated from: %s\n" % original_langname
+    output = "Translated from: %s\n" % lang
+    output += "`%s`" % translated
+
+    return output
 
 def google(commandonly, querytype, querytext, chat_id, msgid):
     if commandonly == 1:
@@ -310,6 +335,17 @@ def handle(msg):
                     db2.commit()
                 except:
                     print("ERROR AT ADD PAT COUNT")
+        elif real_command == 't':
+            if commandonly == 1:
+                if msg2.reply_to_message == None:
+                    bot.sendMessage(chat_id, "Reply to a message to translate, or use `/t <something here>`", reply_to_message_id=msgid, parse_mode='Markdown')
+                else:
+                    tr = t(msg2.reply_to_message.text)
+                    bot.sendMessage(chat_id, tr, parse_mode='Markdown', reply_to_message_id=msgid)
+            else:
+                before = after_command
+                after = t(before)
+                bot.sendMessage(chat_id, after, reply_to_message_id=msgid, parse_mode='Markdown')
         elif real_command == 'start':
             if commandonly == 0:
                 if after_command == 'help':
@@ -345,6 +381,9 @@ def handle(msg):
                         bot.sendMessage(chat_id, "Message sent", reply_to_message_id=msgid)
                     except:
                         bot.sendMessage(chat_id, "Send Failed", reply_to_message_id=msgid)
+                elif sendperson[1:].isdigit():
+                        bot.sendMessage(sendperson, sendmessage)
+                        bot.sendMessage(chat_id, "Message sent")
                 else:
                     sendperson = sendperson[1:]
                     personsql="select telegramid from user where username='%s'" % sendperson
