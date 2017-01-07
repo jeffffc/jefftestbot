@@ -2,19 +2,12 @@ import time
 import random
 import datetime
 import pytz
-import telepot
-import telepot.namedtuple
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-import random
-import _mysql
 import pymysql
 import urllib
 import requests
 import json
 import langcodes
-#from bs4 import BeautifulSoup
 from html.parser import HTMLParser
-from google.cloud import translate
 from config import *
 import corgi
 import trans
@@ -108,25 +101,17 @@ def money(bot, update, groupdict):
     amount = groupdict['amount']
     a = groupdict['a'].upper()
     b = groupdict['b'].upper()
-#    print(amount + " " + a + " " + b)
     url = "http://api.fixer.io/latest"
-#    url += MONEY_API
     url += "?base=" + a + "&symbols=" + b
     response = requests.get(url)
     result = response.json()
-#    print(result)
     rate = result['rates'][b]
     after = "%.3f" % (float(amount)*rate)
     msg = "`" + amount + " " + a + "` = `" + str(after) + b + "`"
     update.message.reply_text(msg, parse_mode='Markdown')
 
 def t(text):
-#    client = translate.Client()
-#    parser = HTMLParser()
-#    result = client.translate(text, target_language='en')
-#    translated = parser.unescape(result['translatedText'])
     a = trans.trans(text)
-#    print(a)
     original_langcode = a[0]
     x = langcodes.Language.get(original_langcode)
     lang = x.language_name()
@@ -188,6 +173,7 @@ def translatee(bot, update, args):
 #    gmsg += "<a href='%s'>Click here</a>" % s_link
 #    print(gmsg)
 #    bot.sendMessage(chat_id, gmsg, reply_to_message_id=msgid, parse_mode='HTML', disable_web_page_preview='True')
+
 def pat(bot, update):
     chat_id = update.message.chat.id
     msgid = update.message.message_id
