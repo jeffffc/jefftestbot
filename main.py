@@ -11,6 +11,7 @@ from html.parser import HTMLParser
 from config import *
 import corgi
 import trans
+from telegraph import telegraph
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter, CallbackQueryHandler, Job, RegexHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -29,6 +30,22 @@ MWT(timeout=60*60)
 
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
+
+def tg(bot, update):
+    if update.message.reply_to_message is not None:
+        url = telegraph(update.message.reply_to_message)
+        update.message.reply_text(url)
+    else:
+        update.message.reply_text("reply to a message")
+
+def re(bot, update, args):
+    if len(args) == 0:
+        return
+    else:
+        bot.sendChatAction(update.message.chat.id, action='typing')
+        time.sleep(3)
+        msg = " ".join(args)
+        update.message.reply_text(msg, parse_mode='Markdown')
 
 def get_admin_ids(bot, chat_id):
     return [admin.user.id for admin in bot.getChatAdministrators(chat_id)]
@@ -216,7 +233,7 @@ def pat(bot, update):
             patdesc = row[0]
     except:
         print("ERROR")
-    if to_user is None:
+    if reply_to is None:
         bot.sendMessage(chat_id, '* pats pats *')
     else:
         patmsg = to_user_name
@@ -675,6 +692,8 @@ def main():
     dp.add_handler(RegexHandler("^[!/][Pp][Aa][Tt]", pat))
     dp.add_handler(CommandHandler("send", send, pass_args=True))
     dp.add_handler(CommandHandler("corgi", corgii))
+    dp.add_handler(CommandHandler("re", re, pass_args=True))
+    dp.add_handler(CommandHandler("tg", tg))
     
     money_regex="^[\s]*(?P<amount>[0-9]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
     dp.add_handler(RegexHandler(money_regex, money, pass_groupdict=True))
