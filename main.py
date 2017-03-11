@@ -334,7 +334,7 @@ def translatee(bot, update, args):
             to_lang = 'English'
             if len(args) == 1:
                 to_lang = args[0]
-                tr = t(to_lang, before)
+                tr = t(to_lang, reply_to.text)
                 bot.sendMessage(chat_id, tr, parse_mode='Markdown', reply_to_message_id=msgid)
                 return
         to_lang = 'English'
