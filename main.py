@@ -1,3 +1,4 @@
+#coding: utf-8
 import time
 import random
 import datetime
@@ -15,6 +16,7 @@ from telegraph import telegraph
 import id
 import re
 import wwstats
+import sfake
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter, CallbackQueryHandler, Job, RegexHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -31,8 +33,54 @@ logger = logging.getLogger(__name__)
 
 MWT(timeout=60*60)
 
+
+def start(bot, update):
+    msg="Thank you for starting me! Use /help to get some brief help. Feel free to contact @jeffffc if you have questions."
+    if update.message.chat.type == "private":
+        update.message.reply_text(msg)
+    else:
+        return
+
+
+def addtest(bot, update):
+    if update.message.reply_to_message is not None:
+        with open("testtest.txt", "a") as myfile:
+            myfile.write(str(update.message.reply_to_message.message_id) + "\n")
+        update.message.reply_text("Done")
+
+def showtest(bot, update):
+    chat_id = update.message.chat.id
+    with open("testtest.txt", "r") as myfile:
+        data = myfile.read().splitlines()
+    msgid = int(random.choice(data))
+    bot.forwardMessage(chat_id=chat_id, from_chat_id=chat_id, message_id=msgid)
+
+
+
+
+
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
+
+def calculatesfake(bot, update, args):
+    add(update.message)
+    reply_to = update.message.reply_to_message
+    if args:
+        try:
+            num = int(args[0])
+            answer = sfake.calc(num)
+            update.message.reply_text("`%s`"%str(answer), parse_mode='Markdown')
+        except:
+            update.message.reply_text("Not a number..")
+    elif reply_to is not None:
+        try:
+            num = int(reply_to.text)
+            answer = sfake.calc(num)
+            update.message.reply_text("`%s`"%str(answer), parse_mode='Markdown')
+        except:
+            update.message.reply_text("Not a number..")
+    else:
+        update.message.reply_text("Use `/sf <num>` or reply to a number.", parse_mode='Markdown')
 
 def achv(bot, update):
     add(update.message)
@@ -154,7 +202,7 @@ def repeat(bot, update, args):
 #        escape_chars = '\*_`\['
 #        msg = re.sub(r'([%s])' % escape_chars, r'\\\1', msg)
         time.sleep(3)
-        update.message.reply_text(msg, parse_mode='Markdown')
+        update.message.reply_text(msg, parse_mode='Markdown', disable_web_page_preview=True)
 
 def get_admin_ids(bot, chat_id):
     return [admin.user.id for admin in bot.getChatAdministrators(chat_id)]
@@ -832,7 +880,11 @@ def main():
     dp.add_handler(CommandHandler("dict", dict, pass_args=True))
     dp.add_handler(CommandHandler("achv", achv))
     dp.add_handler(CommandHandler("ud", ud, pass_args=True))
-    
+    dp.add_handler(CommandHandler("sf", calculatesfake, pass_args=True))
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("addtest", addtest))
+    dp.add_handler(CommandHandler("showtest", showtest))
+
     money_regex="^[\s]*(?P<amount>[0-9,.]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
     dp.add_handler(RegexHandler(money_regex, money, pass_groupdict=True))
     
@@ -840,7 +892,7 @@ def main():
     
     dp.add_error_handler(error)
     
-    updater.start_polling()
+    updater.start_polling(clean=True)
     print("Bot has started... Polling for messages...")
     updater.idle()
 
