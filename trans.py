@@ -9,3 +9,9 @@ def trans(text):
     outputtext = output['text'][0]
     return inputlang, outputtext
 
+def trans2(to_langcode, text):
+    inputlang = translate.detect(text)
+    outputlang = to_langcode
+    convert = inputlang + "-" + outputlang
+    output = translate.translate(text, convert)
+    return inputlang, outputtext

@@ -227,7 +227,7 @@ def add(msg):
     if msg.from_user.last_name is not '':
         from_user_name += " " + msg.from_user.last_name
     from_user_e = db2.escape_string(from_user_name)
-    
+
     try:
         if chat_type == 'group' or chat_type == 'supergroup':
             group_id = chat_id
@@ -285,8 +285,12 @@ def money(bot, update, groupdict):
     msg = "`" + amount + " " + a + "` = `" + str(after) + b + "`"
     update.message.reply_text(msg, parse_mode='Markdown')
 
-def t(text):
-    a = trans.trans(text)
+def t(to_lang, text):
+    if to_lang != 'English':
+        to_langcode = str(langcodes.find(to_lang))
+        a = trans.trans2(to_langcode, text)
+    else:
+        a = trans.trans(text)
     original_langcode = a[0]
     x = langcodes.Language.get(original_langcode)
     lang = x.language_name()
@@ -296,6 +300,14 @@ def t(text):
         lang += " - " + x.script_name()
     translated = a[1]
     output = "Translated from: %s\n" % lang
+    if to_lang != 'English':
+        y = langcodes.Language.get(to_langcode)
+        outputlang = y.language_name()
+        if y.region_name() != None:
+            lang += " (" + y.region_name() + ")"
+        if y.script_name() != None:
+            lang += " - " + y.script_name()
+        output += "Translated to: %s\n" % outputlang
     output += "`%s`" % translated
 
     return output
@@ -305,12 +317,12 @@ def translatee(bot, update, args):
     msgid = update.message.message_id
     from_id = update.message.from_user.id
     reply_to = update.message.reply_to_message
-    
+
     add(update.message)
     bye = checkbanned(from_id)
     if bye == 1:
         return
-        
+
     if not args:
         if reply_to is not None:
             tr = t(reply_to.text)
@@ -318,8 +330,12 @@ def translatee(bot, update, args):
         else:
             bot.sendMessage(chat_id, "Reply to a message to translate, or use `/t <something here>`", reply_to_message_id=msgid, parse_mode='Markdown')
     else:
+        to_lang = 'English'
+        if args[0][0] == "*":
+            to_lang = args[0][1:]
+            args.pop(0)
         before = " ".join(args)
-        after = t(before)
+        after = t(to_lang, before)
         bot.sendMessage(chat_id, after, reply_to_message_id=msgid, parse_mode='Markdown')
 
 #def google(commandonly, querytype, querytext, chat_id, msgid):
@@ -365,13 +381,13 @@ def pat(bot, update):
         to_user_name = to_user.first_name
         if to_user.last_name is not '':
             to_user_name += " " + to_user.last_name
-    
-    add(update.message)   
-    
+
+    add(update.message)
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-        
+
     sql = "select count(patid) from patdb"
     try:
         cursor.execute(sql)
@@ -418,15 +434,15 @@ def feedback(bot, update, args):
     if update.message.from_user.last_name is not '':
         from_name += " " + update.message.from_user.last_name
     from_username =  update.message.from_user.username
-    add(update.message)   
-    
+    add(update.message)
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-        
+
     if update.message.from_user.last_name is not '':
         from_name += " " + update.message.from_user.last_name
-    
+
     if not args:
         update.message.reply_text("Use `/feedback <Message here>` to send feedback to me!", parse_mode='Markdown')
     else:
@@ -443,13 +459,13 @@ def jsql(bot, update, args):
     chat_id = update.message.chat.id
     msgid = update.message.message_id
     from_id = update.message.from_user.id
-    
-    add(update.message)   
-    
+
+    add(update.message)
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-        
+
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, ("You are not %s!" % ADMIN_NAME), reply_to_message_id=msgid)
         return
@@ -481,11 +497,11 @@ def patstat(bot, update):
     if update.message.from_user.last_name is not '':
         from_user_name += " " + update.message.from_user.last_name
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     cursor2 = db2.cursor(pymysql.cursors.DictCursor)
     checkpatcount=("select patted, pattedby from user where telegramid=%d" % from_id)
     cursor2.execute(checkpatcount)
@@ -500,13 +516,13 @@ def myloc(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if not args:
         bot.sendMessage(chat_id, "Please use `/myloc <location>` to set your location.", reply_to_message_id=msgid, parse_mode='Markdown')
         return
@@ -517,14 +533,14 @@ def myloc(bot, update, args):
         db2.commit()
         setmsg = "Your location is set to `%s`" % setloc
         bot.sendMessage(chat_id, setmsg, reply_to_message_id=msgid, parse_mode='Markdown')
-       
+
 def now(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
@@ -544,7 +560,7 @@ def now(bot, update, args):
                 return
             else:
                 loc = userloc
-        
+
         url = "http://dataservice.accuweather.com/locations/v1/search"
         ran = random.randint(0,1)
         if ran == 0:
@@ -579,9 +595,9 @@ def now(bot, update, args):
         bot.sendMessage(chat_id, wmsg, reply_to_message_id=msgid, parse_mode='Markdown')
     except:
         print("LOL")
-        bot.sendMessage(chat_id, "Something wrong with your location...", reply_to_message_id=msgid)    
-        
-        
+        bot.sendMessage(chat_id, "Something wrong with your location...", reply_to_message_id=msgid)
+
+
 def checkbanned(from_id):
     from_id =int(from_id)
     bansql = "select banned from user where telegramid=%d" % from_id
@@ -599,17 +615,17 @@ def jban(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.from_user.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
         return
-        
+
     if not args:
         bot.sendMessage(chat_id, "Use `/jban <id>`", reply_to_message_id=msgid, parse_mode="Markdown")
         return
@@ -643,17 +659,17 @@ def junban(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.from_user.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if from_id != ADMIN_ID:
-        update.message.reply_text("You are not %s!" % ADMIN_NAME) 
+        update.message.reply_text("You are not %s!" % ADMIN_NAME)
         return
-        
+
     if not args:
         update.message.reply_text("Use `/junban <id>`", parse_mode='Markdown')
         return
@@ -681,17 +697,17 @@ def jbanlist(bot, update):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
         return
-        
+
     banlistsql = "select name, username, telegramid from user where banned=1"
     cursor.execute(banlistsql)
     db2.commit()
@@ -726,7 +742,7 @@ def button(bot, update):
     msgid = msg.message_id
     tomsg = query.message.reply_to_message
 #    from_id = chat_data['from_id']
-    
+
     if query.data == 'start':
         starturl="telegram.me/" + BOT_USERNAME + "?start=help"
         bot.answerCallbackQuery(queryid, url = starturl)
@@ -734,20 +750,20 @@ def button(bot, update):
     if query.data == 'achv':
         starturl="telegram.me/" + BOT_USERNAME + "?start=achv"
         bot.answerCallbackQuery(queryid, url=starturl)
-        
+
 def help(bot, update):
     chat_type = update.message.chat.type
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
     from_name = update.message.from_user.first_name
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     helpmsg = "Availble Commands:\n"
     helpmsg += "`/pat: [single use or by reply], pats someone`\n"
     helpmsg += "`/patstat: chat your pat history`\n"
@@ -773,17 +789,17 @@ def send(bot, update, args):
     reply_to = update.message.reply_to_message
     if reply_to is not None:
         to_user_id = reply_to.from_user.id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, ("You are not %s!" % ADMIN_NAME), reply_to_message_id=msgid)
         return
-        
+
     if reply_to is None:
         if not args:
             bot.sendMessage(chat_id, "Use `/send <id> <message>`", reply_to_message_id=msgid, parse_mode='Markdown')
@@ -834,7 +850,7 @@ def main():
     global db2, cursor
     db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8', autocommit=True)
     cursor = db2.cursor()
-    
+
     cursor.execute("set names utf8mb4")
     cursor.execute("set character set utf8mb4")
     cursor.execute("set character_set_connection=utf8mb4")
@@ -844,15 +860,15 @@ def main():
     cursor.execute(SQL_CREATE_TABLE_3)
     cursor.execute(SQL_CREATE_TABLE_4)
     db2.commit()
-    
-    
+
+
     try:
         cursor.execute(SQL_DEFAULT_PAT)
         db2.commit()
 #        db2.close()
     except:
         print("Default Pat String exists already.")
-        
+
     updater = Updater(BOT_TOKEN)
 
     job = updater.job_queue
@@ -887,11 +903,11 @@ def main():
 
     money_regex="^[\s]*(?P<amount>[0-9,.]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
     dp.add_handler(RegexHandler(money_regex, money, pass_groupdict=True))
-    
+
     dp.add_handler(CallbackQueryHandler(button))
-    
+
     dp.add_error_handler(error)
-    
+
     updater.start_polling(clean=True)
     print("Bot has started... Polling for messages...")
     updater.idle()
