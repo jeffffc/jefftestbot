@@ -3,3 +3,5 @@ config.py
 log.txt
 pycache
 __pycache__
+*.pyproj
+.vs
