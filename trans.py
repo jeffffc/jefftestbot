@@ -14,4 +14,5 @@ def trans2(to_langcode, text):
     outputlang = to_langcode
     convert = inputlang + "-" + outputlang
     output = translate.translate(text, convert)
+    outputtext = output['text'][0]
     return inputlang, outputtext
