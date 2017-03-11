@@ -330,6 +330,13 @@ def translatee(bot, update, args):
         else:
             bot.sendMessage(chat_id, "Reply to a message to translate, or use `/t <something here>`", reply_to_message_id=msgid, parse_mode='Markdown')
     else:
+        if reply_to is not None:
+            to_lang = 'English'
+            if len(args) == 1:
+                to_lang = args[0]
+                tr = t(to_lang, before)
+                bot.sendMessage(chat_id, tr, parse_mode='Markdown', reply_to_message_id=msgid)
+                return
         to_lang = 'English'
         if args[0][0] == "*":
             to_lang = args[0][1:]
