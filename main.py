@@ -326,7 +326,7 @@ def translatee(bot, update, args):
     if not args:
         if reply_to is not None:
             print(reply_to.text)
-            tr = t(reply_to.text)
+            tr = t(text=reply_to.text)
             bot.sendMessage(chat_id, tr, parse_mode='Markdown', reply_to_message_id=msgid)
         else:
             bot.sendMessage(chat_id, "Reply to a message to translate, or use `/t <something here>`", reply_to_message_id=msgid, parse_mode='Markdown')
