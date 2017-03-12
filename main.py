@@ -894,7 +894,7 @@ def main():
     dp.add_handler(CommandHandler("t", translatee, pass_args=True))
     dp.add_handler(CommandHandler("myloc", myloc, pass_args=True))
 #    dp.add_handler(CommandHandler("pat", pat))
-    dp.add_handler(RegexHandler("^[!/][Pp][Aa][Tt]", pat))
+    dp.add_handler(CommandHandler("pat", pat))
     dp.add_handler(CommandHandler("send", send, pass_args=True))
     dp.add_handler(CommandHandler("corgi", corgii))
     dp.add_handler(CommandHandler("re", repeat, pass_args=True))
