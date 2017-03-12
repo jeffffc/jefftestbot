@@ -224,7 +224,7 @@ def add(msg):
     from_user_name = msg.from_user.first_name
 #    from_user_e = db2.escape_string(from_user_name)
     from_username = msg.from_user.username
-    if msg.from_user.last_name is not '':
+    if msg.from_user.last_name is not None:
         from_user_name += " " + msg.from_user.last_name
     from_user_e = db2.escape_string(from_user_name)
 
@@ -258,7 +258,7 @@ def add(msg):
     if reply_to is not None:
         to_user = reply_to.from_user
         to_user_name = to_user.first_name
-        if to_user.last_name is not '':
+        if to_user.last_name is not None:
             to_user_name += " " + to_user.last_name
         to_user_name_e = db2.escape_string(to_user_name)
         to_user_id = to_user.id
@@ -377,7 +377,7 @@ def pat(bot, update):
     msgid = update.message.message_id
     from_id = update.message.from_user.id
     from_user_name = update.message.from_user.first_name
-    if update.message.from_user.last_name is not '':
+    if update.message.from_user.last_name is not None:
         from_user_name += " " + update.message.from_user.last_name
     chat_type = update.message.chat.type
     reply_to = update.message.reply_to_message
@@ -386,7 +386,7 @@ def pat(bot, update):
         to_user = reply_to.from_user
         to_user_id = to_user.id
         to_user_name = to_user.first_name
-        if to_user.last_name is not '':
+        if to_user.last_name is not None:
             to_user_name += " " + to_user.last_name
 
     add(update.message)
@@ -438,7 +438,7 @@ def feedback(bot, update, args):
     msgid = update.message.message_id
     from_id = update.message.from_user.id
     from_name = update.message.from_user.first_name
-    if update.message.from_user.last_name is not '':
+    if update.message.from_user.last_name is not None:
         from_name += " " + update.message.from_user.last_name
     from_username =  update.message.from_user.username
     add(update.message)
@@ -447,7 +447,7 @@ def feedback(bot, update, args):
     if bye == 1:
         return
 
-    if update.message.from_user.last_name is not '':
+    if update.message.from_user.last_name is not None:
         from_name += " " + update.message.from_user.last_name
 
     if not args:
@@ -501,7 +501,7 @@ def patstat(bot, update):
     chat_id = update.message.chat.id
     msgid = update.message.message_id
     from_user_name = update.message.from_user.first_name
-    if update.message.from_user.last_name is not '':
+    if update.message.from_user.last_name is not None:
         from_user_name += " " + update.message.from_user.last_name
     add(update.message)
 
@@ -740,7 +740,7 @@ def button(bot, update):
     query_from_id = query.from_user.id
     query_from_first = query.from_user.first_name
     query_from_last = query.from_user.last_name
-    if query_from_last is not '':
+    if query_from_last is not None:
         query_from_name = query_from_first + " " + query_from_last
     else:
         query_from_name = query_from_first
