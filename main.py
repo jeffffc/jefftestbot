@@ -276,7 +276,7 @@ def add(msg):
 
 @run_async
 def stickers(bot, update):
-    adduser(update.message)
+    add(update.message)
     if update.message.chat.type != 'private':
         return
     if update.message.reply_to_message is None:
