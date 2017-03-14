@@ -17,6 +17,7 @@ import id
 import re
 import wwstats
 import sfake
+import make_sticker
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter, CallbackQueryHandler, Job, RegexHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -271,6 +272,33 @@ def add(msg):
             editreplyuser = "update user set name='%s', username='%s' where telegramid=%d" % (to_user_name_e, to_user_username, to_user_id)
             cursor.execute(editreplyuser)
             db2.commit()
+
+@run_async
+def stickers(bot, update):
+    adduser(update.message)
+    if update.message.chat.type != 'private':
+        return
+    if update.message.reply_to_message is None:
+        update.message.reply_text("Reply to an image")
+        return
+    else:
+        try:
+            photo_id = update.message.reply_to_message.photo[-1].file_id
+        except:
+            update.message.reply_text("The replied message contains no image.")
+            return
+        sendmsg = "Downloading and Checking your image...\n"
+        msg = update.message.reply_text(sendmsg)
+        url = bot.getFile(photo_id).file_path
+        sendmsg += "Resizing your image...\n"
+        msg.edit_text(sendmsg)
+        sendpath = make_sticker.convert(url)
+        sendmsg += "Done!"
+        msg.edit_text(sendmsg)
+        bot.sendChatAction(update.message.chat.id, "UPLOAD_DOCUMENT")
+        bot.sendDocument(update.message.chat.id, open(sendpath, 'rb'))
+
+
 
 def money(bot, update, groupdict):
     amount = str(groupdict['amount']).replace(",", "")
@@ -907,6 +935,7 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("addtest", addtest))
     dp.add_handler(CommandHandler("showtest", showtest))
+    dp.add_handler(CommandHandler("sticker", stickers))
 
     money_regex="^[\s]*(?P<amount>[0-9,.]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
     dp.add_handler(RegexHandler(money_regex, money, pass_groupdict=True))
