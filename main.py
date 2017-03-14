@@ -21,6 +21,7 @@ import make_sticker
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter, CallbackQueryHandler, Job, RegexHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext.dispatcher import run_async
 import logging
 from mwt import MWT
 
