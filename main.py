@@ -305,13 +305,24 @@ def money(bot, update, groupdict):
     amount = str(groupdict['amount']).replace(",", "")
     a = groupdict['a'].upper()
     b = groupdict['b'].upper()
-    url = "http://api.fixer.io/latest"
-    url += "?base=" + a + "&symbols=" + b
-    response = requests.get(url)
+    url = "http://apilayer.net/api/live?access_key={}&currencies={},{}".format(CURRENCY_API_1, a, b)
+    url2 = "http://apilayer.net/api/live?access_key={}&currencies={},{}".format(CURRENCY_API_2, a, b)
+#    url = "http://api.fixer.io/latest"
+#    url += "?base=" + a + "&symbols=" + b
+    try:
+        response = requests.get(url)
+    except:
+        response = requests.get(url2)
     result = response.json()
-    rate = result['rates'][b]
-    after = "%.3f" % (float(amount)*rate)
-    msg = "`" + amount + " " + a + "` = `" + str(after) + b + "`"
+#    rate = result['rates'][b]
+#    after = "%.3f" % (float(amount)*rate)
+#    msg = "`" + amount + " " + a + "` = `" + str(after) + b + "`"
+    xa = "USD{}".format(a)
+    xb = "USD{}".format(b)
+    aftera = result['quotes'][xa]
+    afterb = result['quotes'][xb]
+    after = "%.3f" % float(float(amount) * float(afterb) / float(aftera))
+    msg = "`{} {}` = `{} {}`".format(amount, a, after, b)
     update.message.reply_text(msg, parse_mode='Markdown')
 
 def t(to_lang, text):
