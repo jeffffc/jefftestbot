@@ -607,7 +607,7 @@ def now(bot, update, args):
                 userloc = row[0]
             db2.commit()
             if userloc == None:
-                bot.sendMessage(chat_id, "Please use `!myloc <location>` to set default location or use `!now <location>`.", reply_to_message_id=msgid, parse_mode='Markdown')
+                bot.sendMessage(chat_id, "Please use `/myloc <location>` to set default location or use `/now <location>`.", reply_to_message_id=msgid, parse_mode='Markdown')
                 return
             else:
                 loc = userloc
