@@ -612,6 +612,7 @@ def now(bot, update, args):
             else:
                 loc = userloc
 
+        '''
         url = "http://dataservice.accuweather.com/locations/v1/search"
         ran = random.randint(0,1)
         if ran == 0:
@@ -639,6 +640,18 @@ def now(bot, update, args):
         weather = result[0]['WeatherText']
         ctemp = str(result[0]['Temperature']['Metric']['Value']) + "°" + result[0]['Temperature']['Metric']['Unit']
         ftemp = str(result[0]['Temperature']['Imperial']['Value']) + "°" + result[0]['Temperature']['Imperial']['Unit']
+        '''
+        url = "http://api.apixu.com/v1/current.json"
+        url += "?key=" + APIXU_API
+        url += "&q=" + urllib.parse.quote(loc)
+        response = requests.get(url)
+        result = response.json()
+        place = "{}, {}, {}".format(result['location']['name'], result['location']['region'], result['location']['country'])
+        ctemp = "{} °C".format(result['current']['temp_c'])
+        ftemp = "{} °F".format(result['current']['temp_f'])
+        weather = result['current']['condition']['text']
+        localtime = str(result['location']['localtime'])
+        localzone = datetime.datetime.now(pytz.timezone(result['location']['tz_id'])).strftime('%z')
         wmsg = "Currently at: %s" % place
         wmsg += "\nTemperature:`\t%s or %s`" % (ctemp, ftemp)
         wmsg += "\nDescription:`\t%s`" % weather
