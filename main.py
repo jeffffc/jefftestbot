@@ -587,6 +587,19 @@ def help(bot, update):
 #        if chat_type != 'private':
 #            nopm(bot, chat_id, from_name, msgid)
 
+def calc_callback(bot, update, args):
+    if not args:
+        return
+    query = "".join(args)
+    try:
+        answer = eval(query)
+        msg = "The answer is `{}`.".format(answer)
+    except:
+        msg = "Error occured. Try again."
+    update.message.reply_text(msg, parse_mode='Markdown')
+
+
+
 def send(bot, update, args):
     chat_type = update.message.chat.type
     from_id = update.message.from_user.id
@@ -694,6 +707,7 @@ def main():
     dp.add_handler(CommandHandler("corgi", corgii))
     dp.add_handler(CommandHandler("re", re, pass_args=True))
     dp.add_handler(CommandHandler("tg", tg))
+    dp.add_handler(CommandHandler("calc", calc_callback, pass_args=True))
     
     money_regex="^[\s]*(?P<amount>[0-9]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
     dp.add_handler(RegexHandler(money_regex, money, pass_groupdict=True))
