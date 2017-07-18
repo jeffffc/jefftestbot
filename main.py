@@ -1,3 +1,4 @@
+#coding: utf-8
 import time
 import random
 import datetime
@@ -12,9 +13,15 @@ from config import *
 import corgi
 import trans
 from telegraph import telegraph
+import id
+import re
+import wwstats
+import sfake
+import make_sticker
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, BaseFilter, CallbackQueryHandler, Job, RegexHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext.dispatcher import run_async
 import logging
 from mwt import MWT
 
@@ -28,8 +35,158 @@ logger = logging.getLogger(__name__)
 
 MWT(timeout=60*60)
 
+
+def start(bot, update):
+    msg="Thank you for starting me! Use /help to get some brief help. Feel free to contact @jeffffc if you have questions."
+    if update.message.chat.type == "private":
+        update.message.reply_text(msg)
+    else:
+        return
+
+
+def addtest(bot, update):
+    if update.message.reply_to_message is not None:
+        with open("testtest.txt", "a") as myfile:
+            myfile.write(str(update.message.reply_to_message.message_id) + "\n")
+        update.message.reply_text("Done")
+
+def showtest(bot, update):
+    chat_id = update.message.chat.id
+    with open("testtest.txt", "r") as myfile:
+        data = myfile.read().splitlines()
+    msgid = int(random.choice(data))
+    bot.forwardMessage(chat_id=chat_id, from_chat_id=chat_id, message_id=msgid)
+
+
+
+
+
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
+
+def calculatesfake(bot, update, args):
+    add(update.message)
+    reply_to = update.message.reply_to_message
+    if args:
+        try:
+            num = int(args[0])
+            answer = sfake.calc(num)
+            update.message.reply_text("`%s`"%str(answer), parse_mode='Markdown')
+        except:
+            update.message.reply_text("Not a number..")
+    elif reply_to is not None:
+        try:
+            num = int(reply_to.text)
+            answer = sfake.calc(num)
+            update.message.reply_text("`%s`"%str(answer), parse_mode='Markdown')
+        except:
+            update.message.reply_text("Not a number..")
+    else:
+        update.message.reply_text("Use `/sf <num>` or reply to a number.", parse_mode='Markdown')
+
+def achv(bot, update):
+    add(update.message)
+    from_id = update.message.from_user.id
+    try:
+        msg, msg2 = wwstats.check(from_id)
+        bot.sendMessage(chat_id = from_id, text = msg, parse_mode='Markdown')
+        bot.sendMessage(chat_id = from_id, text = msg2, parse_mode='Markdown')
+        if update.message.chat.type != 'private':
+            update.message.reply_text("I sent you your achivements in private.")
+    except:
+        keyboard = [[InlineKeyboardButton("Start Me!", url="telegram.me/"+BOT_USERNAME)]]
+        markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text("Please click 'Start Me' to receive my message!", reply_markup=markup)
+
+
+def dict(bot, update, args):
+    chat_id = update.message.chat.id
+    msgid = update.message.message_id
+    from_id = update.message.from_user.id
+    reply_to = update.message.reply_to_message
+
+    add(update.message)
+    bye = checkbanned(from_id)
+    if bye == 1:
+        return
+
+    if not args:
+        bot.sendMessage(chat_id, "Use `/dict <word>`", reply_to_message_id=msgid, parse_mode='Markdown')
+        return
+    else:
+        if len(args) > 1:
+            bot.sendMessage(chat_id, "Use `/dict <word>`", reply_to_message_id=msgid, parse_mode='Markdown')
+            return
+        word = args[0]
+        result = dict_go(word)
+        bot.sendMessage(chat_id, result, reply_to_message_id=msgid, parse_mode='Markdown')
+
+def dict_go(word):
+    url = "https://od-api.oxforddictionaries.com/api/v1/entries/en/" + word.lower() + "/definitions"
+    randnum = random.randint(0,1)
+    if randnum == 0:
+        apikey = OXFORD_API_1
+    else:
+        apikey = OXFORD_API_2
+    appid = OXFORD_ID
+    try:
+        r = requests.get(url, headers = {'app_id': appid, 'app_key': apikey})
+        result = r.json()
+        list = result['results'][0]['lexicalEntries']
+        msg = "Definition(s) of word `%s`:\n" % word
+        num = 1
+        for each in list:
+            msg += str(num) + ": `" + str(each['entries'][0]['senses'][0]['definitions'][0])[:-1] + "`\n"
+            num = num + 1
+        return msg
+    except:
+        msg = "Sorry, I cannot find the definitions of word `%s`." % word
+        return msg
+
+def ud(bot, update, args):
+    chat_id = update.message.chat.id
+    msgid = update.message.message_id
+    from_id = update.message.from_user.id
+    reply_to = update.message.reply_to_message
+
+    add(update.message)
+    bye = checkbanned(from_id)
+    if bye == 1:
+        return
+
+    if not args:
+        bot.sendMessage(chat_id, "Use `/ud <something here>`", reply_to_message_id=msgid, parse_mode='Markdown')
+        return
+    else:
+        word = " ".join(args)
+        result = ud_go(word)
+        bot.sendMessage(chat_id, result, reply_to_message_id=msgid, parse_mode='Markdown')
+
+def ud_go(word):
+    url = "https://mashape-community-urban-dictionary.p.mashape.com/define?term=" + urllib.parse.quote(word.lower(), safe='')
+    apikey = UD_API
+    try:
+        r = requests.get(url, headers = {"X-Mashape-Key": UD_API, "Accept": "text/plain"})
+        result = r.json()
+        if result['result_type'] == 'no_results':
+            msg = "Sorry. No results for `%s`." % word
+            return msg
+        list = result['list']
+        msg = "Query of `%s` on Urban Dictionary:\n" % word
+        num = 1
+        limit = 1
+        for each in list:
+            msg += str(num) + ": `" + str(each['definition']) + "`\n"
+            break
+        return msg
+    except:
+        msg = "Sorry, I found nothing about `%s` on Urban Dictionary." % word
+        return msg
+
+
+def showinfo(bot, update):
+    msg = id.showinfo(update.message)
+    update.message.reply_text(msg, parse_mode='Markdown')
 
 def tg(bot, update):
     if update.message.reply_to_message is not None:
@@ -38,14 +195,16 @@ def tg(bot, update):
     else:
         update.message.reply_text("reply to a message")
 
-def re(bot, update, args):
+def repeat(bot, update, args):
     if len(args) == 0:
         return
     else:
         bot.sendChatAction(update.message.chat.id, action='typing')
-        time.sleep(3)
         msg = " ".join(args)
-        update.message.reply_text(msg, parse_mode='Markdown')
+#        escape_chars = '\*_`\['
+#        msg = re.sub(r'([%s])' % escape_chars, r'\\\1', msg)
+        time.sleep(3)
+        update.message.reply_text(msg, parse_mode='Markdown', disable_web_page_preview=True)
 
 def get_admin_ids(bot, chat_id):
     return [admin.user.id for admin in bot.getChatAdministrators(chat_id)]
@@ -54,6 +213,7 @@ def corgii(bot, update):
     chat_id = update.message.chat.id
     msgid = update.message.message_id
     add(update.message)
+    bot.sendChatAction(chat_id, action="upload_photo")
     link = corgi.corgi()
     bot.sendPhoto(chat_id, photo=link, caption="BUTTIFUL!", reply_to_message_id = msgid)
 
@@ -69,7 +229,7 @@ def add(msg):
     if msg.from_user.last_name is not None:
         from_user_name += " " + msg.from_user.last_name
     from_user_e = db2.escape_string(from_user_name)
-    
+
     try:
         if chat_type == 'group' or chat_type == 'supergroup':
             group_id = chat_id
@@ -114,21 +274,67 @@ def add(msg):
             cursor.execute(editreplyuser)
             db2.commit()
 
+@run_async
+def stickers(bot, update):
+    add(update.message)
+    if update.message.chat.type != 'private':
+        return
+    if update.message.reply_to_message is None:
+        update.message.reply_text("Reply to an image")
+        return
+    else:
+        try:
+            photo_id = update.message.reply_to_message.photo[-1].file_id
+        except:
+            update.message.reply_text("The replied message contains no image.")
+            return
+        sendmsg = "Downloading and Checking your image...\n"
+        msg = update.message.reply_text(sendmsg)
+        url = bot.getFile(photo_id).file_path
+        sendmsg += "Resizing your image...\n"
+        msg.edit_text(sendmsg)
+        sendpath = make_sticker.convert(url)
+        sendmsg += "Done!"
+        msg.edit_text(sendmsg)
+        bot.sendChatAction(update.message.chat.id, "UPLOAD_DOCUMENT")
+        bot.sendDocument(update.message.chat.id, open(sendpath, 'rb'))
+
+
+
 def money(bot, update, groupdict):
-    amount = groupdict['amount']
+    amount = str(groupdict['amount']).replace(",", "")
     a = groupdict['a'].upper()
     b = groupdict['b'].upper()
-    url = "http://api.fixer.io/latest"
-    url += "?base=" + a + "&symbols=" + b
-    response = requests.get(url)
+    url = "http://apilayer.net/api/live?access_key={}&currencies={},{}".format(CURRENCY_API_1, a, b)
+    url2 = "http://apilayer.net/api/live?access_key={}&currencies={},{}".format(CURRENCY_API_2, a, b)
+#    url = "http://api.fixer.io/latest"
+#    url += "?base=" + a + "&symbols=" + b
+    try:
+        response = requests.get(url)
+    except:
+        response = requests.get(url2)
     result = response.json()
-    rate = result['rates'][b]
-    after = "%.3f" % (float(amount)*rate)
-    msg = "`" + amount + " " + a + "` = `" + str(after) + b + "`"
+#    rate = result['rates'][b]
+#    after = "%.3f" % (float(amount)*rate)
+#    msg = "`" + amount + " " + a + "` = `" + str(after) + b + "`"
+    xa = "USD{}".format(a)
+    xb = "USD{}".format(b)
+    aftera = result['quotes'][xa]
+    afterb = result['quotes'][xb]
+    after = "%.3f" % float(float(amount) * float(afterb) / float(aftera))
+    with open("currency.json", 'r') as currencyjson:
+        currency = json.load(currencyjson)
+    afull = currency[a]
+    bfull = currency[b]
+    msg = "`{} {}({})` = `{} {}({})`".format(amount, afull, a, after, bfull, b)
     update.message.reply_text(msg, parse_mode='Markdown')
 
-def t(text):
-    a = trans.trans(text)
+def t(to_lang, text):
+    if to_lang != 'English':
+        to_langcode = str(langcodes.find(to_lang))
+        a = trans.trans2(to_langcode, text)
+    else:
+        a = trans.trans(text)
     original_langcode = a[0]
     x = langcodes.Language.get(original_langcode)
     lang = x.language_name()
@@ -138,6 +344,14 @@ def t(text):
         lang += " - " + x.script_name()
     translated = a[1]
     output = "Translated from: %s\n" % lang
+    if to_lang != 'English':
+        y = langcodes.Language.get(to_langcode)
+        outputlang = y.language_name()
+        if y.region_name() != None:
+            lang += " (" + y.region_name() + ")"
+        if y.script_name() != None:
+            lang += " - " + y.script_name()
+        output += "Translated to: %s\n" % outputlang
     output += "`%s`" % translated
 
     return output
@@ -147,21 +361,32 @@ def translatee(bot, update, args):
     msgid = update.message.message_id
     from_id = update.message.from_user.id
     reply_to = update.message.reply_to_message
-    
+
     add(update.message)
     bye = checkbanned(from_id)
     if bye == 1:
         return
-        
+
     if not args:
         if reply_to is not None:
-            tr = t(reply_to.text)
+            tr = t('English', reply_to.text)
             bot.sendMessage(chat_id, tr, parse_mode='Markdown', reply_to_message_id=msgid)
         else:
             bot.sendMessage(chat_id, "Reply to a message to translate, or use `/t <something here>`", reply_to_message_id=msgid, parse_mode='Markdown')
     else:
+        if reply_to is not None:
+            to_lang = 'English'
+            if len(args) == 1:
+                to_lang = args[0]
+                tr = t(to_lang, reply_to.text)
+                bot.sendMessage(chat_id, tr, parse_mode='Markdown', reply_to_message_id=msgid)
+                return
+        to_lang = 'English'
+        if args[0][0] == "*":
+            to_lang = args[0][1:]
+            args.pop(0)
         before = " ".join(args)
-        after = t(before)
+        after = t(to_lang, before)
         bot.sendMessage(chat_id, after, reply_to_message_id=msgid, parse_mode='Markdown')
 
 #def google(commandonly, querytype, querytext, chat_id, msgid):
@@ -207,13 +432,13 @@ def pat(bot, update):
         to_user_name = to_user.first_name
         if to_user.last_name is not None:
             to_user_name += " " + to_user.last_name
-    
-    add(update.message)   
-    
+
+    add(update.message)
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-        
+
     sql = "select count(patid) from patdb"
     try:
         cursor.execute(sql)
@@ -260,18 +485,21 @@ def feedback(bot, update, args):
     if update.message.from_user.last_name is not None:
         from_name += " " + update.message.from_user.last_name
     from_username =  update.message.from_user.username
-    add(update.message)   
-    
+    add(update.message)
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-        
+
     if update.message.from_user.last_name is not None:
         from_name += " " + update.message.from_user.last_name
-    
+
     if not args:
         update.message.reply_text("Use `/feedback <Message here>` to send feedback to me!", parse_mode='Markdown')
     else:
+        msg = "FEEDBACK FROM: %s (%d)\n" % (from_name, from_id)
+        msg += " ".join(args)
+        bot.sendMessage(chat_id=ADMIN_ID, text=msg)
         fbmessage = db2.escape_string(" ".join(args))
         fbsql = "insert into feedback (message, name, username, telegramid) values ('%s', '%s', '%s', %d)" % (fbmessage, from_name, from_username, from_id)
         cursor.execute(fbsql)
@@ -282,13 +510,13 @@ def jsql(bot, update, args):
     chat_id = update.message.chat.id
     msgid = update.message.message_id
     from_id = update.message.from_user.id
-    
-    add(update.message)   
-    
+
+    add(update.message)
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-        
+
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, ("You are not %s!" % ADMIN_NAME), reply_to_message_id=msgid)
         return
@@ -320,11 +548,11 @@ def patstat(bot, update):
     if update.message.from_user.last_name is not None:
         from_user_name += " " + update.message.from_user.last_name
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     cursor2 = db2.cursor(pymysql.cursors.DictCursor)
     checkpatcount=("select patted, pattedby from user where telegramid=%d" % from_id)
     cursor2.execute(checkpatcount)
@@ -339,13 +567,13 @@ def myloc(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if not args:
         bot.sendMessage(chat_id, "Please use `/myloc <location>` to set your location.", reply_to_message_id=msgid, parse_mode='Markdown')
         return
@@ -356,14 +584,14 @@ def myloc(bot, update, args):
         db2.commit()
         setmsg = "Your location is set to `%s`" % setloc
         bot.sendMessage(chat_id, setmsg, reply_to_message_id=msgid, parse_mode='Markdown')
-       
+
 def now(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
@@ -379,11 +607,12 @@ def now(bot, update, args):
                 userloc = row[0]
             db2.commit()
             if userloc == None:
-                bot.sendMessage(chat_id, "Please use `!myloc <location>` to set default location or use `!now <location>`.", reply_to_message_id=msgid, parse_mode='Markdown')
+                bot.sendMessage(chat_id, "Please use `/myloc <location>` to set default location or use `/now <location>`.", reply_to_message_id=msgid, parse_mode='Markdown')
                 return
             else:
                 loc = userloc
-        
+
+        '''
         url = "http://dataservice.accuweather.com/locations/v1/search"
         ran = random.randint(0,1)
         if ran == 0:
@@ -411,6 +640,18 @@ def now(bot, update, args):
         weather = result[0]['WeatherText']
         ctemp = str(result[0]['Temperature']['Metric']['Value']) + "°" + result[0]['Temperature']['Metric']['Unit']
         ftemp = str(result[0]['Temperature']['Imperial']['Value']) + "°" + result[0]['Temperature']['Imperial']['Unit']
+        '''
+        url = "http://api.apixu.com/v1/current.json"
+        url += "?key=" + APIXU_API
+        url += "&q=" + urllib.parse.quote(loc)
+        response = requests.get(url)
+        result = response.json()
+        place = "{}, {}, {}".format(result['location']['name'], result['location']['region'], result['location']['country'])
+        ctemp = "{} °C".format(result['current']['temp_c'])
+        ftemp = "{} °F".format(result['current']['temp_f'])
+        weather = result['current']['condition']['text']
+        localtime = str(result['location']['localtime'])
+        localzone = datetime.datetime.now(pytz.timezone(result['location']['tz_id'])).strftime('%z')
         wmsg = "Currently at: %s" % place
         wmsg += "\nTemperature:`\t%s or %s`" % (ctemp, ftemp)
         wmsg += "\nDescription:`\t%s`" % weather
@@ -418,9 +659,9 @@ def now(bot, update, args):
         bot.sendMessage(chat_id, wmsg, reply_to_message_id=msgid, parse_mode='Markdown')
     except:
         print("LOL")
-        bot.sendMessage(chat_id, "Something wrong with your location...", reply_to_message_id=msgid)    
-        
-        
+        bot.sendMessage(chat_id, "Something wrong with your location...", reply_to_message_id=msgid)
+
+
 def checkbanned(from_id):
     from_id =int(from_id)
     bansql = "select banned from user where telegramid=%d" % from_id
@@ -438,86 +679,99 @@ def jban(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.from_user.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
         return
-        
+
     if not args:
         bot.sendMessage(chat_id, "Use `/jban <id>`", reply_to_message_id=msgid, parse_mode="Markdown")
         return
     elif args[0] is not None:
         banid = args[0]
+        print(banid)
         if banid.isdigit():
+            banid = int(banid)
             if checkbanned(banid) == 1:
-                bot.sendMessage(chat_id, "User banned already", reply_to_message_id=msgid)
-        elif checkbanned(banid) == -1:
-            bot.sendMessage(chat_id, "ID wrong", reply_to_message_id=msgid)
+                print("ban already")
+                update.message.reply_text("User banned already")
+            elif checkbanned(banid) == -1:
+                print("id wrong")
+                update.message.reply_text("ID wrong")
+            else:
+                print("now banning")
+                bannow = "update user set banned=1 where telegramid=%d" % banid
+                try:
+                    cursor.execute(bannow)
+                    db2.commit()
+                    print("banned")
+                    update.message.reply_text("Ban Successful.")
+                except:
+                    print("fail")
+                    update.message.reply_text("Failed. Try again.")
         else:
-            bannow = "update user set banned=1 where telegramid=%d" % banid
-            try:
-                cursor.execute(bannow)
-                db2.commit()
-                bot.sendMessage(chat_id, "ban Successful", reply_to_message_id=msgid)
-            except:
-                bot.sendMessage(chat_id, "Failed. Try again.", reply_to_message_id=msgid)
-                
+            print("not id")
+            update.message.reply_text("not an id")
 
 def junban(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.from_user.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if from_id != ADMIN_ID:
-        bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
+        update.message.reply_text("You are not %s!" % ADMIN_NAME)
         return
-        
+
     if not args:
-        bot.sendMessage(chat_id, "Use `/junban <id>`", reply_to_message_id=msgid, parse_mode="Markdown")
+        update.message.reply_text("Use `/junban <id>`", parse_mode='Markdown')
         return
     elif args[0] is not None:
         unbanid = args[0]
         if unbanid.isdigit():
+            unbanid = int(unbanid)
             if checkbanned(unbanid) == 0:
-                bot.sendMessage(chat_id, "User was not banned", reply_to_message_id=msgid)
-        elif checkbanned(unbanid) == -1:
-            bot.sendMessage(chat_id, "ID wrong", reply_to_message_id=msgid)
+                update.message.reply_text("User was not banned")
+            elif checkbanned(unbanid) == -1:
+                update.message.reply_text("ID Wrong")
+            else:
+                unbannow = "update user set banned=0 where telegramid=%d" % unbanid
+                try:
+                    cursor.execute(unbannow)
+                    db2.commit()
+                    update.message.reply_text("Unban Successful")
+                except:
+                    update.message.reply_text("Failed, try again.")
         else:
-            unbannow = "update user set banned=0 where telegramid=%d" % unbanid
-            try:
-                cursor.execute(unbannow)
-                db2.commit()
-                bot.sendMessage(chat_id, "Unban Successful", reply_to_message_id=msgid)
-            except:
-                bot.sendMessage(chat_id, "Failed. Try again.", reply_to_message_id=msgid)
+            print("not id")
+            update.message.reply_text("Not ID")
 
 def jbanlist(bot, update):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
         return
-        
+
     banlistsql = "select name, username, telegramid from user where banned=1"
     cursor.execute(banlistsql)
     db2.commit()
@@ -543,8 +797,8 @@ def button(bot, update):
     query_from_id = query.from_user.id
     query_from_first = query.from_user.first_name
     query_from_last = query.from_user.last_name
-    if query_from_last:
-        query_from_name = query_from_first + query_from_last
+    if query_from_last is not None:
+        query_from_name = query_from_first + " " + query_from_last
     else:
         query_from_name = query_from_first
     msg = query.message
@@ -552,25 +806,28 @@ def button(bot, update):
     msgid = msg.message_id
     tomsg = query.message.reply_to_message
 #    from_id = chat_data['from_id']
-    
+
     if query.data == 'start':
         starturl="telegram.me/" + BOT_USERNAME + "?start=help"
         bot.answerCallbackQuery(queryid, url = starturl)
-        
-        
+
+    if query.data == 'achv':
+        starturl="telegram.me/" + BOT_USERNAME + "?start=achv"
+        bot.answerCallbackQuery(queryid, url=starturl)
+
 def help(bot, update):
     chat_type = update.message.chat.type
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
     from_name = update.message.from_user.first_name
     msgid = update.message.message_id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     helpmsg = "Availble Commands:\n"
     helpmsg += "`/pat: [single use or by reply], pats someone`\n"
     helpmsg += "`/patstat: chat your pat history`\n"
@@ -587,19 +844,6 @@ def help(bot, update):
 #        if chat_type != 'private':
 #            nopm(bot, chat_id, from_name, msgid)
 
-def calc_callback(bot, update, args):
-    if not args:
-        return
-    query = "".join(args)
-    try:
-        answer = eval(query)
-        msg = "The answer is `{}`.".format(answer)
-    except:
-        msg = "Error occured. Try again."
-    update.message.reply_text(msg, parse_mode='Markdown')
-
-
-
 def send(bot, update, args):
     chat_type = update.message.chat.type
     from_id = update.message.from_user.id
@@ -609,17 +853,17 @@ def send(bot, update, args):
     reply_to = update.message.reply_to_message
     if reply_to is not None:
         to_user_id = reply_to.from_user.id
-    
+
     add(update.message)
-    
+
     bye = checkbanned(from_id)
     if bye == 1:
         return
-    
+
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, ("You are not %s!" % ADMIN_NAME), reply_to_message_id=msgid)
         return
-        
+
     if reply_to is None:
         if not args:
             bot.sendMessage(chat_id, "Use `/send <id> <message>`", reply_to_message_id=msgid, parse_mode='Markdown')
@@ -658,8 +902,8 @@ def send(bot, update, args):
     else:
         sendperson = to_user_id
         sendmessage = " ".join(args)
-        if reply_to.forward_from != None:
-            sendperson = reply_to2.forward_from.id
+        if reply_to.forward_from is not None:
+            sendperson = reply_to.forward_from.id
         try:
             bot.sendMessage(sendperson, sendmessage)
             bot.sendMessage(chat_id, "Message sent", reply_to_message_id=msgid)
@@ -670,7 +914,7 @@ def main():
     global db2, cursor
     db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8', autocommit=True)
     cursor = db2.cursor()
-    
+
     cursor.execute("set names utf8mb4")
     cursor.execute("set character set utf8mb4")
     cursor.execute("set character_set_connection=utf8mb4")
@@ -680,16 +924,21 @@ def main():
     cursor.execute(SQL_CREATE_TABLE_3)
     cursor.execute(SQL_CREATE_TABLE_4)
     db2.commit()
-    
-    
+
+
     try:
         cursor.execute(SQL_DEFAULT_PAT)
         db2.commit()
 #        db2.close()
     except:
         print("Default Pat String exists already.")
-        
+
     updater = Updater(BOT_TOKEN)
+
+    job = updater.job_queue
+    nexthour = datetime.datetime.now().replace(microsecond=0).replace(second=0).replace(minute=0) + datetime.timedelta(hours=1)
+#    job.run_repeating(amaat, datetime.timedelta(hours=1), first=nexthour)
+
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("jbanlist", jbanlist))
     dp.add_handler(CommandHandler("junban", junban, pass_args=True))
@@ -702,21 +951,29 @@ def main():
     dp.add_handler(CommandHandler("t", translatee, pass_args=True))
     dp.add_handler(CommandHandler("myloc", myloc, pass_args=True))
 #    dp.add_handler(CommandHandler("pat", pat))
-    dp.add_handler(RegexHandler("^[!/][Pp][Aa][Tt]", pat))
+    dp.add_handler(CommandHandler("pat", pat))
     dp.add_handler(CommandHandler("send", send, pass_args=True))
     dp.add_handler(CommandHandler("corgi", corgii))
-    dp.add_handler(CommandHandler("re", re, pass_args=True))
+    dp.add_handler(CommandHandler("re", repeat, pass_args=True))
     dp.add_handler(CommandHandler("tg", tg))
-    dp.add_handler(CommandHandler("calc", calc_callback, pass_args=True))
-    
-    money_regex="^[\s]*(?P<amount>[0-9]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
+    dp.add_handler(CommandHandler("z", showinfo))
+    dp.add_handler(CommandHandler("dict", dict, pass_args=True))
+    dp.add_handler(CommandHandler("achv", achv))
+    dp.add_handler(CommandHandler("ud", ud, pass_args=True))
+    dp.add_handler(CommandHandler("sf", calculatesfake, pass_args=True))
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("addtest", addtest))
+    dp.add_handler(CommandHandler("showtest", showtest))
+    dp.add_handler(CommandHandler("sticker", stickers))
+
+    money_regex="^[\s]*(?P<amount>[0-9,.]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
     dp.add_handler(RegexHandler(money_regex, money, pass_groupdict=True))
-    
+
     dp.add_handler(CallbackQueryHandler(button))
-    
+
     dp.add_error_handler(error)
-    
-    updater.start_polling()
+
+    updater.start_polling(clean=True)
     print("Bot has started... Polling for messages...")
     updater.idle()
 
