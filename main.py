@@ -2,6 +2,8 @@
 import time
 import random
 import datetime
+from ast import literal_eval
+
 import pytz
 import pymysql
 import urllib
@@ -849,7 +851,7 @@ def calc_callback(bot, update, args):
         return
     query = "".join(args)
     try:
-        answer = eval(query)
+        answer = literal_eval(query)
         msg = "The answer is `{}`.".format(answer)
     except:
         msg = "Error occured. Try again."
