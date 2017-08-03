@@ -934,29 +934,24 @@ def search_id_callback(bot, update, args):
     sent = update.message.reply_text("Please wait...")
     try:
         inputtext = int(inputtext)
-        input_dict = {"id": inputtext}
-        json_dict = json.dumps(input_dict)
-        r = requests.get(
-            "http://api.jpwr.ga/bot226774066:AAFPoonQPpn8QmtR99_TPUS-mqwmWdAuJAA/madeline?method=users.getFullUser&params={}".format(
-                json_dict)).json()
-        msg = ""
-        if "user" in r['result']:
-            msg += "ID: `{}`\n".format(r['result']['user']['id'])
-            msg += "First Name: {}\n".format(r['result']['user']['first_name'])
-            if "last_name" in r['result']['user']:
-                msg += "Last Name: {}\n".format(r['result']['user']['last_name'])
-            if 'username' in r['result']['user']:
-                msg += "Username: @{}\n".format(r['result']['user']['username'])
-        if "about" in r['result']:
-            msg += "About: _{}_".format(r['result']['about'])
-        sent.edit_text(msg, parse_mode='Markdown')
     except:
-        input_dict = {"username": inputtext}
-        json_dict = json.dumps(input_dict)
-        r = requests.get(
-            "http://api.jpwr.ga/bot226774066:AAFPoonQPpn8QmtR99_TPUS-mqwmWdAuJAA/madeline?method=contacts.resolveUsername&params={}".format(
-                json_dict)).json()
-
+        pass
+    r = requests.get(
+        "http://api.jpwr.ga/bot226774066:AAFPoonQPpn8QmtR99_TPUS-mqwmWdAuJAA/getchat?chat_id=".format(
+            inputtext)).json()
+    msg = ""
+    msg += "ID: `{}`\n".format(r['result']['id'])
+    if "first_name" in r['result']:
+        msg += "First Name: {}\n".format(r['result']['first_name'])
+    if "last_name" in r['result']:
+        msg += "Last Name: {}\n".format(r['result']['last_name'])
+    if 'username' in r['result']:
+        msg += "Username: @{}\n".format(r['result']['username'])
+    if "title" in r['result']:
+        msg += "Title: *{}*\n".format(r['result']['title'])
+    if "about" in r['result']:
+        msg += "About: _{}_".format(r['result']['about'])
+    sent.edit_text(msg, parse_mode='Markdown')
 
 
 
@@ -1029,7 +1024,6 @@ def main():
 
     updater.start_polling(clean=True)
     print("Bot has started... Polling for messages...")
-    updater.idle()
 
 
 
