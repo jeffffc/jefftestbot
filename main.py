@@ -983,7 +983,7 @@ def main():
     except:
         print("Default Pat String exists already.")
 
-    updater = Updater(BOT_TOKEN)
+    updater = Updater(BOT_TOKEN, base_url="http://api.jpwr.ga/bot")
 
     job = updater.job_queue
     nexthour = datetime.datetime.now().replace(microsecond=0).replace(second=0).replace(minute=0) + datetime.timedelta(hours=1)
