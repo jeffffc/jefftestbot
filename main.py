@@ -942,19 +942,22 @@ def search_id_callback(bot, update, args):
     msg = ""
     msg += "ID: `{}`\n".format(r['result']['id'])
     if "first_name" in r['result']:
-        msg += "First Name: {}\n".format(r['result']['first_name'])
+        msg += "First Name: {}\n".format(escape_markdown(r['result']['first_name']))
     if "last_name" in r['result']:
-        msg += "Last Name: {}\n".format(r['result']['last_name'])
+        msg += "Last Name: {}\n".format(escape_markdown(r['result']['last_name']))
     if 'username' in r['result']:
-        msg += "Username: @{}\n".format(r['result']['username'])
+        msg += "Username: @{}\n".format(escape_markdown(r['result']['username']))
     if "title" in r['result']:
-        msg += "Title: *{}*\n".format(r['result']['title'])
+        msg += "Title: *{}*\n".format(escape_markdown(r['result']['title']))
     if "about" in r['result']:
-        msg += "About: _{}_".format(r['result']['about'])
+        msg += "About: _{}_".format(escape_markdown(r['result']['about']))
     sent.edit_text(msg, parse_mode='Markdown')
 
 
-
+def escape_markdown(text):
+    """Helper function to escape telegram markup symbols"""
+    escape_chars = '\*_`\[\]'
+    return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
 
 
 def main():
