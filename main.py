@@ -937,7 +937,7 @@ def search_id_callback(bot, update, args):
     except:
         pass
     r = requests.get(
-        "http://api.jpwr.ga/bot226774066:AAFPoonQPpn8QmtR99_TPUS-mqwmWdAuJAA/getchat?chat_id=".format(
+        "http://api.jpwr.ga/bot226774066:AAFPoonQPpn8QmtR99_TPUS-mqwmWdAuJAA/getchat?chat_id={}".format(
             inputtext)).json()
     msg = ""
     msg += "ID: `{}`\n".format(r['result']['id'])
