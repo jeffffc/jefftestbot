@@ -924,6 +924,44 @@ def send(bot, update, args):
         except:
             bot.sendMessage(chat_id, "Send Failed", reply_to_message_id=msgid)
 
+
+@run_async
+def search_id_callback(bot, update, args):
+    if not args:
+        update.message.reply_text("Please provide an id or username.")
+        return
+    inputtext = args[0]
+    sent = update.message.reply_text("Please wait...")
+    try:
+        inputtext = int(inputtext)
+        input_dict = {"id": inputtext}
+        json_dict = json.dumps(input_dict)
+        r = requests.get(
+            "http://api.jpwr.ga/bot226774066:AAFPoonQPpn8QmtR99_TPUS-mqwmWdAuJAA/madeline?method=users.getFullUser&params={}".format(
+                json_dict)).json()
+        msg = ""
+        if "user" in r['result']:
+            msg += "ID: `{}`\n".format(r['result']['user']['id'])
+            msg += "First Name: {}\n".format(r['result']['user']['first_name'])
+            if "last_name" in r['result']['user']:
+                msg += "Last Name: {}\n".format(r['result']['user']['last_name'])
+            if 'username' in r['result']['user']:
+                msg += "Username: @{}\n".format(r['result']['user']['username'])
+        if "about" in r['result']:
+            msg += "About: _{}_".format(r['result']['about'])
+        sent.edit_text(msg, parse_mode='Markdown')
+    except:
+        input_dict = {"username": inputtext}
+        json_dict = json.dumps(input_dict)
+        r = requests.get(
+            "http://api.jpwr.ga/bot226774066:AAFPoonQPpn8QmtR99_TPUS-mqwmWdAuJAA/madeline?method=contacts.resolveUsername&params={}".format(
+                json_dict)).json()
+
+
+
+
+
+
 def main():
     global db2, cursor
     db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8', autocommit=True)
@@ -980,6 +1018,7 @@ def main():
     dp.add_handler(CommandHandler("showtest", showtest))
     dp.add_handler(CommandHandler("sticker", stickers))
     dp.add_handler(CommandHandler("calc", calc_callback, pass_args=True))
+    dp.add_handler(CommandHandler("search", search_id_callback, pass_args=True))
 
     money_regex="^[\s]*(?P<amount>[0-9,.]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
     dp.add_handler(RegexHandler(money_regex, money, pass_groupdict=True))
