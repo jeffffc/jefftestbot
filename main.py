@@ -13,7 +13,7 @@ import langcodes
 from html.parser import HTMLParser
 from config import *
 import corgi
-import trans
+import gtrans
 from telegraph import telegraph
 import id
 import re
@@ -334,9 +334,10 @@ def money(bot, update, groupdict):
 def t(to_lang, text):
     if to_lang != 'English':
         to_langcode = str(langcodes.find(to_lang))
-        a = trans.trans2(to_langcode, text)
+        # a = trans.trans2(to_langcode, text)
+        a = gtrans.trans(text, to_langcode)
     else:
-        a = trans.trans(text)
+        a = gtrans.trans(text)
     original_langcode = a[0]
     x = langcodes.Language.get(original_langcode)
     lang = x.language_name()

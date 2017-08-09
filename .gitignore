@@ -6,3 +6,4 @@ __pycache__
 result.txt
 *.pyproj
 .vs
+translate_cred.json
