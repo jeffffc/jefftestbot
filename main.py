@@ -961,6 +961,14 @@ def escape_markdown(text):
     return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
 
 
+def save_message(bot, update):
+    reply_to_msg = update.message.reply_to_message
+    try:
+        reply_to_msg.forward(update.message.from_user.id)
+    except:
+        update.message.reply_text("You have not started me in private...")
+        
+
 def main():
     global db2, cursor
     db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8', autocommit=True)
@@ -1018,6 +1026,8 @@ def main():
     dp.add_handler(CommandHandler("sticker", stickers))
     dp.add_handler(CommandHandler("calc", calc_callback, pass_args=True))
     dp.add_handler(CommandHandler("search", search_id_callback, pass_args=True))
+    
+    dp.add_handler(CommandHandler("s", save_message, filters=(Filters.reply & Filters.group)))
 
     money_regex="^[\s]*(?P<amount>[0-9,.]+)[\s]*(?P<a>[A-Za-z]+)[\s]+[tT][oO][\s]+(?P<b>[A-Za-z]+)$"
     dp.add_handler(RegexHandler(money_regex, money, pass_groupdict=True))
