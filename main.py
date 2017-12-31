@@ -961,6 +961,10 @@ def escape_markdown(text):
     return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
 
 
+def happynewyear(bot, job):
+    bot.send_message(-1001062976534, "HAPPY NEW YEAR TO PEPLE WHOSE TIMEZONE IS NOW AT 12AM!!!")
+
+
 def main():
     global db2, cursor
     db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8', autocommit=True)
@@ -989,6 +993,7 @@ def main():
     job = updater.job_queue
     nexthour = datetime.datetime.now().replace(microsecond=0).replace(second=0).replace(minute=0) + datetime.timedelta(hours=1)
 #    job.run_repeating(amaat, datetime.timedelta(hours=1), first=nexthour)
+    job.run_repeating(happynewyear, datetime.timedelta(minutes=30), first=nexthour)
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("jbanlist", jbanlist))
