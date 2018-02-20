@@ -588,6 +588,8 @@ def myloc(bot, update, args):
         setmsg = "Your location is set to `%s`" % setloc
         bot.sendMessage(chat_id, setmsg, reply_to_message_id=msgid, parse_mode='Markdown')
 
+
+@run_async
 def now(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
@@ -662,7 +664,7 @@ def now(bot, update, args):
         bot.sendMessage(chat_id, wmsg, reply_to_message_id=msgid, parse_mode='Markdown')
     except:
         print("LOL")
-        bot.sendMessage(chat_id, "Something wrong with your location...", reply_to_message_id=msgid)
+        bot.sendMessage(chat_id, "Something wrong with your location... or something wrong with me...", reply_to_message_id=msgid)
 
 
 def checkbanned(from_id):
@@ -971,6 +973,14 @@ def save_message(bot, update):
 
 def happynewyear(bot, job):
     bot.send_message(-1001062976534, "HAPPY NEW YEAR TO PEPLE WHOSE TIMEZONE IS NOW AT 12AM!!!")
+
+
+def save_message(bot, update):
+    reply_to_msg = update.message.reply_to_message
+    try:
+        reply_to_msg.forward(update.message.from_user.id)
+    except:
+        update.message.reply_text("You have not started me in private...")
 
 
 def main():
