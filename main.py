@@ -1011,7 +1011,6 @@ def main():
     job = updater.job_queue
     nexthour = datetime.datetime.now().replace(microsecond=0).replace(second=0).replace(minute=0) + datetime.timedelta(hours=1)
 #    job.run_repeating(amaat, datetime.timedelta(hours=1), first=nexthour)
-    job.run_repeating(happynewyear, datetime.timedelta(minutes=30), first=nexthour)
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("jbanlist", jbanlist))
