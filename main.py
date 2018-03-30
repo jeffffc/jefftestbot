@@ -1029,7 +1029,7 @@ def main():
     dp.add_handler(CommandHandler("corgi", corgii))
     dp.add_handler(CommandHandler("re", repeat, pass_args=True))
     dp.add_handler(CommandHandler("tg", tg))
-    dp.add_handler(CommandHandler("z", showinfo))
+    # dp.add_handler(CommandHandler("z", showinfo))
     dp.add_handler(CommandHandler("dict", dict, pass_args=True))
     dp.add_handler(CommandHandler("achv", achv))
     dp.add_handler(CommandHandler("ud", ud, pass_args=True))
