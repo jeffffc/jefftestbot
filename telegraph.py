@@ -190,6 +190,7 @@ def convert_html_to_telegraph_format(html_string, clean_html=True):
 
 TELEGRAPH = "20346be13b984c8e63d3d9e90aea7fa2e363f72110ef3cdc3a2281be8505"
 
+
 def telegraph(message):
     name = message.from_user.first_name
     if message.from_user.last_name is not None:
