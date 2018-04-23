@@ -93,7 +93,7 @@ def achv(bot, update):
     from_id = update.from_user.id
     try:
         msg1, msg2 = wwstats.check(from_id)
-        bot.send_message(from_id, msg1, parse_mode='Markdown')
+        bot.send_message(from_id, msg1, parse_mode='Markdown')  # Jono: maybe change to msg.from_user.send_message if it works
         bot.send_message(from_id, msg2, parse_mode='Markdown')
         if msg.chat_id > 0:
             msg.reply_text("I sent you your achivements in private.")
@@ -106,7 +106,7 @@ def achv(bot, update):
 def dict(bot, update, args):
     msg = update.message
     add(msg)
-    bey = checkbanned(from_id)
+    bey = checkbanned(msg.from_user.id)
     if bey == 1:
         return
     elif not args:
@@ -144,12 +144,8 @@ def dict_go(word):
 
 def ud(bot, update, args):
     msg = update.message
-    chat_id = msg.chat.id
-    msgid = msg.message_id
-    from_id = msg.from_user.id
-    reply_to = msg.reply_to_message
     add(msg)
-    bey = checkbanned(from_id)
+    bey = checkbanned(msg.from_user.id)
     if bey == 1:
         return
     elif not args:
@@ -319,7 +315,7 @@ def money(bot, update, groupdict):
 #    url += "?base=" + a + "&symbols=" + b
     try:
         response = requests.get(url)
-    except:
+    except Exception:
         response = requests.get(url2)
     result = response.json()
 #    rate = result['rates'][b]
@@ -335,7 +331,7 @@ def money(bot, update, groupdict):
     afull = currency[a]
     bfull = currency[b]
     msg = "`{} {}({})` = `{} {}({})`".format(amount, afull, a, after, bfull, b)
-    update.message.reply_text(msg, parse_mode='Markdown')
+    update.message.reply_markdown(msg)
 
 
 def t(to_lang, text):
@@ -357,9 +353,9 @@ def t(to_lang, text):
     if to_lang != 'English':
         y = langcodes.Language.get(to_langcode)
         outputlang = y.language_name()
-        if y.region_name() != None:
+        if y.region_name():
             lang += " (" + y.region_name() + ")"
-        if y.script_name() != None:
+        if y.script_name():
             lang += " - " + y.script_name()
         output += "Translated to: %s\n" % outputlang
     output += "`%s`" % translated
@@ -368,37 +364,35 @@ def t(to_lang, text):
 
 
 def translatee(bot, update, args):
-    chat_id = update.message.chat.id
-    msgid = update.message.message_id
-    from_id = update.message.from_user.id
-    reply_to = update.message.reply_to_message
+	msg = update.message
+    reply_to = msg.reply_to_message
 
-    add(update.message)
-    bey = checkbanned(from_id)
+    add(msg)
+    bey = checkbanned(msg.from_user.id)
     if bey == 1:
         return
-
-    if not args:
-        if reply_to is not None:
+    elif not args:
+        if reply_to:
             tr = t('English', reply_to.text)
-            bot.sendMessage(chat_id, tr, parse_mode='Markdown', reply_to_message_id=msgid)
+            msg.reply_markdown(tr, quote=True)
         else:
-            bot.sendMessage(chat_id, "Reply to a message to translate, or use `/t <something here>`", reply_to_message_id=msgid, parse_mode='Markdown')
+            msg.reply_markdown("Reply to a message to translate, or use `/t <something here>`", quote=True)
     else:
-        if reply_to is not None:
+        if reply_to:
             to_lang = 'English'
             if len(args) == 1:
                 to_lang = args[0]
                 tr = t(to_lang, reply_to.text)
-                bot.sendMessage(chat_id, tr, parse_mode='Markdown', reply_to_message_id=msgid)
-                return
-        to_lang = 'English'
-        if args[0][0] == "*":
-            to_lang = args[0][1:]
-            args.pop(0)
-        before = " ".join(args)
-        after = t(to_lang, before)
-        bot.sendMessage(chat_id, after, reply_to_message_id=msgid, parse_mode='Markdown')
+                msg.reply_markdown(tr, quote=True)
+        else:
+			to_lang = 'English'
+			if args[0][0] == "*":
+				to_lang = args[0][1:]
+				args.pop(0)
+			before = " ".join(args)
+			after = t(to_lang, before)
+			msg.reply_markdown(after, quote=True)
+	
 
 
 #def google(commandonly, querytype, querytext, chat_id, msgid):
@@ -429,36 +423,39 @@ def translatee(bot, update, args):
 #    bot.sendMessage(chat_id, gmsg, reply_to_message_id=msgid, parse_mode='HTML', disable_web_page_preview='True')
 
 
-def pat(bot, update):
-    chat_id = update.message.chat.id
-    msgid = update.message.message_id
-    from_id = update.message.from_user.id
-    from_user_name = update.message.from_user.first_name
-    if update.message.from_user.last_name is not None:
-        from_user_name += " " + update.message.from_user.last_name
-    chat_type = update.message.chat.type
-    reply_to = update.message.reply_to_message
-    if reply_to is not None:
+def pat(bot, update, args):
+	msg = update.message
+    chat_id = msg.chat.id
+    msgid = msg.message_id
+    from_id = msg.from_user.id
+    from_user_name = msg.from_user.full_name
+    chat_type = msg.chat.type
+    reply_to = msg.reply_to_message
+    if reply_to:
         reply_to_id = reply_to.message_id
         to_user = reply_to.from_user
         to_user_id = to_user.id
-        to_user_name = to_user.first_name
-        if to_user.last_name is not None:
-            to_user_name += " " + to_user.last_name
+        to_user_name = to_user.full_name
 
-    add(update.message)
+    add(msg)
 
     bey = checkbanned(from_id)
     if bey == 1:
         return
-
+	elif not reply_to:
+		if args:
+			msg.reply_text("* pats {} *".format(args.join(" ")))
+		else:
+			msg.reply_text("* pats {} *".format(from_user_name))
+		return
+	
     sql = "select count(patid) from patdb"
     try:
         cursor.execute(sql)
         data = cursor.fetchall()
         for row in data:
             patcount = row[0]
-    except:
+    except Exception:
         print("ERROR at count pat desc")
 
     patnum = random.randint(1, patcount)
@@ -469,68 +466,61 @@ def pat(bot, update):
         data = cursor.fetchall()
         for row in data:
             patdesc = row[0]
-    except:
+    except Exception:
         print("ERROR")
-    if reply_to is None:
-        bot.sendMessage(chat_id, '* pats pats *')
-    else:
-        patmsg = to_user_name
-        patmsg += " "
-        patmsg += patdesc
-        patmsg += " "
-        patmsg += from_user_name
-        bot.sendMessage(chat_id, patmsg, reply_to_message_id=reply_to_id)
-        patcountadd=("update user set pattedby = (pattedby + 1) where telegramid=%d" % to_user_id)
-        patbycountadd=("update user set patted = (patted + 1) where telegramid=%d" % from_id)
-        try:
-            cursor.execute(patcountadd)
-            cursor.execute(patbycountadd)
-            db2.commit()
-        except:
-            print("ERROR AT ADD PAT COUNT")
+
+	patmsg = "{} {} {}.".format(to_user_name, patdesc, from_user_name)
+	msg.reply_text(patmsg, reply_to_message_id=reply_to_id)
+	patcountadd=("update user set pattedby = (pattedby + 1) where telegramid=%d" % to_user_id)
+	patbycountadd=("update user set patted = (patted + 1) where telegramid=%d" % from_id)
+	try:
+		cursor.execute(patcountadd)
+		cursor.execute(patbycountadd)
+		db2.commit()
+	except:
+		print("ERROR AT ADD PAT COUNT")
 
 
-def feedback(bot, update, args):
-    chat_id = update.message.chat.id
-    msgid = update.message.message_id
-    from_id = update.message.from_user.id
-    from_name = update.message.from_user.full_name
-    if update.message.from_user.last_name is not None:
-        from_name += " " + update.message.from_user.last_name
+def feedback(bot, update):
+	msg = update.message
+    chat_id = msg.chat.id
+    msgid = msg.message_id
+    from_id = msg.from_user.id
+    from_name = msg.from_user.full_name
     from_username =  update.message.from_user.username
-    add(update.message)
+    add(msg)
 
     bey = checkbanned(from_id)
     if bey == 1:
         return
-
-    if not args:
-        update.message.reply_text("Use `/feedback <Message here>` to send feedback to me!", parse_mode='Markdown')
+    elif not args:
+        msg.reply_markdown("Use `/feedback <Message here>` to send feedback to me!")
     else:
-        msg = "FEEDBACK FROM: %s (%d)\n" % (from_name, from_id)
-        msg += " ".join(args)
-        bot.sendMessage(chat_id=ADMIN_ID, text=msg)
+        fb = "FEEDBACK FROM: %s (%d)\n" % (from_name, from_id)
+        fb += " ".join(args)
+        bot.send_message(chat_id=ADMIN_ID, text=msg)
         fbmessage = db2.escape_string(" ".join(args))
         fbsql = "insert into feedback (message, name, username, telegramid) values ('%s', '%s', '%s', %d)" % (fbmessage, from_name, from_username, from_id)
         cursor.execute(fbsql)
         db2.commit()
-        bot.sendMessage(chat_id, "Feedback sent!", reply_to_message_id=msgid)
+        msg.reply_text("Feedback sent!", quote=True)
 
 
 def jsql(bot, update, args):
-    chat_id = update.message.chat.id
-    msgid = update.message.message_id
-    from_id = update.message.from_user.id
+	msg = update.message
+    chat_id = msg.chat.id
+    msgid = msg.message_id
+    from_id = msg.from_user.id
 
-    add(update.message)
+    add(msg)
 
     bey = checkbanned(from_id)
     if bey == 1:
         return
-
-    if from_id != ADMIN_ID:
-        bot.sendMessage(chat_id, ("You are not %s!" % ADMIN_NAME), reply_to_message_id=msgid)
+    elif from_id != ADMIN_ID:
+        msg.reply_text("You are not {}!".format(ADMIN_NAME), quote=True)
         return
+
     try:
         enteredsql = " ".join(args)
         print(enteredsql)
@@ -539,27 +529,25 @@ def jsql(bot, update, args):
         result = cursor.fetchone()
         sqlmsg = "PERFORMING SQL QUERY:\n"
         colnames= [i[0] for i in cursor.description]
-        sqlmsg += "`" + str(colnames) + "`\n"
-        while result is not None:
-           sqlmsg = sqlmsg + "`" + str(result) + "`"
-           sqlmsg = sqlmsg + "\n"
-           result = cursor.fetchone()
-        sqlmsg = sqlmsg + "`num of affected rows: "+ str(cursor.rowcount) + "`"
-        bot.sendMessage(chat_id, sqlmsg, reply_to_message_id=msgid, parse_mode="Markdown")
+        sqlmsg += "`{}`\n".format(colnames)
+        while result:
+			sqlmsg = "{}`{}`\n".format(sqlmsg, result)
+            result = cursor.fetchone()
+        sqlmsg += "`num of affected rows: {}`".format(cursor.rowcount)
+        msg.reply_markdown(sqlmsg, quote=True)
     except pymysql.MySQLError as e:
         code, errormsg = e.args
-        sqlerror = "`MySQL ErrorCode: %s\nErrorMsg: %s`" % (code, errormsg)
-        bot.sendMessage(chat_id, sqlerror, reply_to_message_id=msgid, parse_mode='Markdown')
+        sqlerror = "`MySQL ErrorCode: {}\nErrorMsg: {}`".format(code, errormsg)
+        msg.reply_markdown(sqlerror, quote=True)
 
 
 def patstat(bot, update):
-    from_id = update.message.from_user.id
-    chat_id = update.message.chat.id
-    msgid = update.message.message_id
-    from_user_name = update.message.from_user.first_name
-    if update.message.from_user.last_name is not None:
-        from_user_name += " " + update.message.from_user.last_name
-    add(update.message)
+	msg = update.message
+    from_id = msg.from_user.id
+    chat_id = msg.chat.id
+    msgid = msg.message_id
+    from_user_name = msg.from_user.full_name
+    add(msg)
 
     bey = checkbanned(from_id)
     if bey == 1:
@@ -570,50 +558,51 @@ def patstat(bot, update):
     cursor2.execute(checkpatcount)
     patcount = cursor2.fetchall()
     for row in patcount:
-       pats = row["patted"]
-       patsby = row["pattedby"]
-       patcountstr="Hello %s!\nYou have patted others `%d` times and got patted by others `%d` times." % (from_user_name, pats, patsby)
-       bot.sendMessage(chat_id, patcountstr, reply_to_message_id=msgid, parse_mode="Markdown")
+        pats = row["patted"]
+        patsby = row["pattedby"]
+        patcountstr="Hello {}!\nYou have patted others {} times and got patted by others {} times.".format(from_user_name, pats, patsby)
+        msg.reply_markdown(patcountstr, quote=True))
 
 
 def myloc(bot, update, args):
-    from_id = update.message.from_user.id
-    chat_id = update.message.chat.id
-    msgid = update.message.message_id
+	msg = update.message
+    from_id = msg.from_user.id
+    chat_id = msg.chat.id
+    msgid = msg.message_id
 
-    add(update.message)
+    add(msg)
 
     bey = checkbanned(from_id)
     if bey == 1:
         return
-
-    if not args:
-        bot.sendMessage(chat_id, "Please use `/myloc <location>` to set your location.", reply_to_message_id=msgid, parse_mode='Markdown')
-        return
+    elif not args:
+        msg.reply_markdown("Please use `/myloc <location>` to set your location.", quote=True)
     else:
         setloc = db2.escape_string(" ".join(args))
         setlocsql = "update user set loc='%s' where telegramid=%d" % (setloc, from_id)
         cursor.execute(setlocsql)
         db2.commit()
-        setmsg = "Your location is set to `%s`" % setloc
-        bot.sendMessage(chat_id, setmsg, reply_to_message_id=msgid, parse_mode='Markdown')
+        setmsg = "Your location is set to {}.".format(setloc)
+        msg.reply_markdown(setmsg, quote=True)
 
 
 @run_async
 def now(bot, update, args):
-    from_id = update.message.from_user.id
-    chat_id = update.message.chat.id
-    msgid = update.message.message_id
+	msg = update.message
+    from_id = msg.from_user.id
+    chat_id = msg.chat.id
+    msgid = msg.message_id
 
-    add(update.message)
+    add(msg)
 
     bey = checkbanned(from_id)
     if bey == 1:
         return
+	
     try:
         if args:
             loc = " ".join(args)
-        elif not args:
+        else:
             checkloc="select loc from user where telegramid=%d" % from_id
             cursor.execute(checkloc)
             db2.commit()
@@ -621,8 +610,9 @@ def now(bot, update, args):
             for row in result:
                 userloc = row[0]
             db2.commit()
-            if userloc == None:
-                bot.sendMessage(chat_id, "Please use `/myloc <location>` to set default location or use `/now <location>`.", reply_to_message_id=msgid, parse_mode='Markdown')
+            if not userloc:
+				text = "Please use `/myloc <location>` to set default location or use `/now <location>`."
+                msg.reply_markdown(text, quote=True)
                 return
             else:
                 loc = userloc
@@ -639,7 +629,9 @@ def now(bot, update, args):
         response = requests.get(url)
         result = response.json()
         locationkey = result[0]['Key']
-        place = result[0]['LocalizedName'] + ", " + result[0]['AdministrativeArea']['LocalizedName'] + ", " + result[0]['Country']['LocalizedName']
+		place = result[0]['LocalizedName'] + ", "
+		place += result[0]['AdministrativeArea']['LocalizedName'] + ", "
+		place += result[0]['Country']['LocalizedName']
         localtzname = result[0]['TimeZone']['Name']
         localtz = pytz.timezone(localtzname)
         local = str(datetime.datetime.now(localtz))
@@ -656,6 +648,7 @@ def now(bot, update, args):
         ctemp = str(result[0]['Temperature']['Metric']['Value']) + "°" + result[0]['Temperature']['Metric']['Unit']
         ftemp = str(result[0]['Temperature']['Imperial']['Value']) + "°" + result[0]['Temperature']['Imperial']['Unit']
         '''
+		
         url = "http://api.apixu.com/v1/current.json"
         url += "?key=" + APIXU_API
         url += "&q=" + urllib.parse.quote(loc)
@@ -667,14 +660,14 @@ def now(bot, update, args):
         weather = result['current']['condition']['text']
         localtime = str(result['location']['localtime'])
         localzone = datetime.datetime.now(pytz.timezone(result['location']['tz_id'])).strftime('%z')
-        wmsg = "Currently at: %s" % place
-        wmsg += "\nTemperature:`\t%s or %s`" % (ctemp, ftemp)
-        wmsg += "\nDescription:`\t%s`" % weather
-        wmsg += "\nLocal Time:`\t%s (UTC%s)`" % (localtime, localzone)
-        bot.sendMessage(chat_id, wmsg, reply_to_message_id=msgid, parse_mode='Markdown')
-    except:
+        wmsg = "Currently at: " + place
+        wmsg += "\nTemperature:`\t{} or {}`".format(ctemp, ftemp)
+        wmsg += "\nDescription:`\t{}`".format(weather)
+        wmsg += "\nLocal Time:`\t{} (UTC{})`".format(localtime, localzone)
+        msg.reply_markdown(wmsg, quote=True)
+    except Exception:
         print("Looks like some nub used /now Mars")
-        bot.sendMessage(chat_id, "Something wrong with your location... or something wrong with me...", reply_to_message_id=msgid)
+        msg.reply_text("Something wrong with your location... or something wrong with me...", quote=True)
 
 
 def checkbanned(from_id):
@@ -687,27 +680,23 @@ def checkbanned(from_id):
             ban = row[0]
         db2.commit()
         return ban
-    except:
+    except Exception:
         return -1
 
 
 def jban(bot, update, args):
-    from_id = update.message.from_user.id
-    chat_id = update.message.from_user.id
-    msgid = update.message.message_id
+	msg= update.message
+    from_id = msg.from_user.id
 
-    add(update.message)
+    add(msg)
 
     bey = checkbanned(from_id)
     if bey == 1:
         return
-
-    if from_id != ADMIN_ID:
-        bot.sendMessage(chat_id, "You are not %s!" % ADMIN_NAME, reply_to_message_id=msgid)
-        return
-
-    if not args:
-        bot.sendMessage(chat_id, "Use `/jban <id>`", reply_to_message_id=msgid, parse_mode="Markdown")
+    elif from_id != ADMIN_ID:
+        msg.reply_text("You are not %s!".format(ADMIN_NAME), quote=True)
+    elif not args:
+        msg.reply_markdown("Use `/jban <id>`", quote=True)
     elif args[0]:
         banid = args[0]
         print(banid)
@@ -715,62 +704,58 @@ def jban(bot, update, args):
             banid = int(banid)
             if checkbanned(banid) == 1:
                 print("ban already")
-                update.message.reply_text("User banned already")
+                msg.reply_text("User banned already")
             elif checkbanned(banid) == -1:
                 print("id wrong")
-                update.message.reply_text("ID wrong")
+                msg.reply_text("ID wrong")
             else:
                 print("now banning")
-                bannow = "update user set banned=1 where telegramid=%d" % banid
+                bannow = "update user set banned=1 where telegramid={}".format(banid)
                 try:
                     cursor.execute(bannow)
                     db2.commit()
                     print("banned")
-                    update.message.reply_text("Ban Successful.")
+                    msg.reply_text("Ban Successful.")
                 except:
                     print("fail")
-                    update.message.reply_text("Failed. Try again.")
+                    msg.reply_text("Failed. Try again.")
         else:
             print("not id")
-            update.message.reply_text("not an id")
+            msg.reply_text("not an id")
 
 
 def junban(bot, update, args):
-    from_id = update.message.from_user.id
-    chat_id = update.message.from_user.id
-    msgid = update.message.message_id
+	msg = update.message
+    from_id = msg.from_user.id
 
-    add(update.message)
+    add(msg)
 
     bey = checkbanned(from_id)
     if bey == 1:
         return
-
-    if from_id != ADMIN_ID:
-        update.message.reply_text("You are not %s!" % ADMIN_NAME)
-        return
-
-    if not args:
-        update.message.reply_text("Use `/junban <id>`", parse_mode='Markdown')
+    elif from_id != ADMIN_ID:
+        msg.reply_text("You are not %s!".format(ADMIN_NAME), quote=True)
+    elif not args:
+        msg.reply_markdown("Use `/junban <id>`", quote=True)
     elif args[0]:
         unbanid = args[0]
         if unbanid.isdigit():
             unbanid = int(unbanid)
             if checkbanned(unbanid) == 0:
-                update.message.reply_text("User was not banned")
+                msg.reply_text("User was not banned")
             elif checkbanned(unbanid) == -1:
-                update.message.reply_text("ID Wrong")
+                msg.reply_text("ID Wrong")
             else:
-                unbannow = "update user set banned=0 where telegramid=%d" % unbanid
+                unbannow = "update user set banned=0 where telegramid={}".format(unbanid)
                 try:
                     cursor.execute(unbannow)
                     db2.commit()
-                    update.message.reply_text("Unban Successful")
+                    msg.reply_text("Unban Successful")
                 except:
-                    update.message.reply_text("Failed, try again.")
+                    msg.reply_text("Failed, try again.")
         else:
             print("not id")
-            update.message.reply_text("Not ID")
+            msg.reply_text("Not ID")
 
 
 def jbanlist(bot, update):
@@ -1023,11 +1008,10 @@ def main():
     dp.add_handler(CommandHandler("jsql", jsql, pass_args=True))
     dp.add_handler(CommandHandler("patstat", patstat))
     dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(CommandHandler("feedback", feedback, pass_args=True))
+    dp.add_handler(CommandHandler("feedback", feedback))
     dp.add_handler(CommandHandler("t", translatee, pass_args=True))
     dp.add_handler(CommandHandler("myloc", myloc, pass_args=True))
-#    dp.add_handler(CommandHandler("pat", pat))
-    dp.add_handler(CommandHandler("pat", pat))
+    dp.add_handler(CommandHandler("pat", pat, pass_args=True))
     dp.add_handler(CommandHandler("send", send, pass_args=True))
     dp.add_handler(CommandHandler("corgi", corgii))
     dp.add_handler(CommandHandler("re", repeat))
