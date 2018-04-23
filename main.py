@@ -106,8 +106,8 @@ def dict(bot, update, args):
     reply_to = update.message.reply_to_message
 
     add(update.message)
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
     if not args:
         bot.sendMessage(chat_id, "Use `/dict <word>`", reply_to_message_id=msgid, parse_mode='Markdown')
@@ -151,8 +151,8 @@ def ud(bot, update, args):
     reply_to = update.message.reply_to_message
 
     add(update.message)
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     if not args:
@@ -373,8 +373,8 @@ def translatee(bot, update, args):
     reply_to = update.message.reply_to_message
 
     add(update.message)
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     if not args:
@@ -447,8 +447,8 @@ def pat(bot, update):
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     sql = "select count(patid) from patdb"
@@ -493,18 +493,15 @@ def feedback(bot, update, args):
     chat_id = update.message.chat.id
     msgid = update.message.message_id
     from_id = update.message.from_user.id
-    from_name = update.message.from_user.first_name
+    from_name = update.message.from_user.full_name
     if update.message.from_user.last_name is not None:
         from_name += " " + update.message.from_user.last_name
     from_username =  update.message.from_user.username
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
-
-    if update.message.from_user.last_name is not None:
-        from_name += " " + update.message.from_user.last_name
 
     if not args:
         update.message.reply_text("Use `/feedback <Message here>` to send feedback to me!", parse_mode='Markdown')
@@ -526,8 +523,8 @@ def jsql(bot, update, args):
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     if from_id != ADMIN_ID:
@@ -563,8 +560,8 @@ def patstat(bot, update):
         from_user_name += " " + update.message.from_user.last_name
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     cursor2 = db2.cursor(pymysql.cursors.DictCursor)
@@ -585,8 +582,8 @@ def myloc(bot, update, args):
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     if not args:
@@ -609,8 +606,8 @@ def now(bot, update, args):
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
     try:
         if args:
@@ -675,12 +672,12 @@ def now(bot, update, args):
         wmsg += "\nLocal Time:`\t%s (UTC%s)`" % (localtime, localzone)
         bot.sendMessage(chat_id, wmsg, reply_to_message_id=msgid, parse_mode='Markdown')
     except:
-        print("LOL") # no u
+        print("Looks like some nub used /now Mars")
         bot.sendMessage(chat_id, "Something wrong with your location... or something wrong with me...", reply_to_message_id=msgid)
 
 
 def checkbanned(from_id):
-    from_id =int(from_id)
+    from_id = int(from_id)
     bansql = "select banned from user where telegramid=%d" % from_id
     cursor.execute(bansql)
     try:
@@ -700,8 +697,8 @@ def jban(bot, update, args):
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     if from_id != ADMIN_ID:
@@ -710,8 +707,7 @@ def jban(bot, update, args):
 
     if not args:
         bot.sendMessage(chat_id, "Use `/jban <id>`", reply_to_message_id=msgid, parse_mode="Markdown")
-        return
-    elif args[0] is not None:
+    elif args[0]:
         banid = args[0]
         print(banid)
         if banid.isdigit():
@@ -745,8 +741,8 @@ def junban(bot, update, args):
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     if from_id != ADMIN_ID:
@@ -755,8 +751,7 @@ def junban(bot, update, args):
 
     if not args:
         update.message.reply_text("Use `/junban <id>`", parse_mode='Markdown')
-        return
-    elif args[0] is not None:
+    elif args[0]:
         unbanid = args[0]
         if unbanid.isdigit():
             unbanid = int(unbanid)
@@ -784,8 +779,8 @@ def jbanlist(bot, update):
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     if from_id != ADMIN_ID:
@@ -797,9 +792,9 @@ def jbanlist(bot, update):
     db2.commit()
     result=cursor.fetchone()
     sqlmsg = "Banned users:\n"
-    if result == None:
+    if not result:
         sqlmsg  = "No banned users"
-    while result is not None:
+    while result:
         sqlmsg+="`"+str(result)+"`\n"
         result=cursor.fetchone()
     bot.sendMessage(chat_id, sqlmsg, reply_to_message_id=msgid, parse_mode='Markdown')
@@ -847,8 +842,8 @@ def help(bot, update):
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     helpmsg = "Availble Commands:\n"
@@ -887,20 +882,20 @@ def send(bot, update, args):
     from_name = update.message.from_user.first_name
     msgid = update.message.message_id
     reply_to = update.message.reply_to_message
-    if reply_to is not None:
+    if reply_to:
         to_user_id = reply_to.from_user.id
 
     add(update.message)
 
-    bye = checkbanned(from_id)
-    if bye == 1:
+    bey = checkbanned(from_id)
+    if bey == 1:
         return
 
     if from_id != ADMIN_ID:
         bot.sendMessage(chat_id, ("You are not %s!" % ADMIN_NAME), reply_to_message_id=msgid)
         return
 
-    if reply_to is None:
+    if not reply_to:
         if not args:
             bot.sendMessage(chat_id, "Use `/send <id> <message>`", reply_to_message_id=msgid, parse_mode='Markdown')
             return
@@ -980,18 +975,6 @@ def escape_markdown(text):
     """Helper function to escape telegram markup symbols"""
     escape_chars = '\*_`\[\]'
     return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
-
-
-def save_message(bot, update):
-    reply_to_msg = update.message.reply_to_message
-    try:
-        reply_to_msg.forward(update.message.from_user.id)
-    except:
-        update.message.reply_text("You have not started me in private...")
-
-
-def happynewyear(bot, job):
-    bot.send_message(-1001062976534, "HAPPY NEW YEAR TO PEPLE WHOSE TIMEZONE IS NOW AT 12AM!!!")
 
 
 def save_message(bot, update):
