@@ -52,6 +52,7 @@ def addtest(bot, update):
             myfile.write(str(update.message.reply_to_message.message_id) + "\n")
         update.message.reply_text("Done")
 
+        
 def showtest(bot, update):
     chat_id = update.message.chat.id
     with open("testtest.txt", "r") as myfile:
@@ -60,11 +61,9 @@ def showtest(bot, update):
     bot.forwardMessage(chat_id=chat_id, from_chat_id=chat_id, message_id=msgid)
 
 
-
-
-
 def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
+
 
 def calculatesfake(bot, update, args):
     add(update.message)
@@ -85,6 +84,7 @@ def calculatesfake(bot, update, args):
             update.message.reply_text("Not a number..")
     else:
         update.message.reply_text("Use `/sf <num>` or reply to a number.", parse_mode='Markdown')
+
 
 def achv(bot, update):
     add(update.message)
@@ -123,6 +123,7 @@ def dict(bot, update, args):
         result = dict_go(word)
         bot.sendMessage(chat_id, result, reply_to_message_id=msgid, parse_mode='Markdown')
 
+
 def dict_go(word):
     url = "https://od-api.oxforddictionaries.com/api/v1/entries/en/" + word.lower() + "/definitions"
     randnum = random.randint(0,1)
@@ -145,6 +146,7 @@ def dict_go(word):
         msg = "Sorry, I cannot find the definitions of word `%s`." % word
         return msg
 
+
 def ud(bot, update, args):
     chat_id = update.message.chat.id
     msgid = update.message.message_id
@@ -163,6 +165,7 @@ def ud(bot, update, args):
         word = " ".join(args)
         result = ud_go(word)
         bot.sendMessage(chat_id, result, reply_to_message_id=msgid, parse_mode='Markdown')
+
 
 def ud_go(word):
     url = "https://mashape-community-urban-dictionary.p.mashape.com/define?term=" + urllib.parse.quote(word.lower(), safe='')
@@ -190,6 +193,7 @@ def showinfo(bot, update):
     msg = id.showinfo(update.message)
     update.message.reply_text(msg, parse_mode='Markdown')
 
+
 def tg(bot, update):
     if update.message.reply_to_message is not None:
         url = telegraph(update.message.reply_to_message)
@@ -197,19 +201,22 @@ def tg(bot, update):
     else:
         update.message.reply_text("reply to a message")
 
-def repeat(bot, update, args):
-    if len(args) == 0:
-        return
-    else:
-        bot.sendChatAction(update.message.chat.id, action='typing')
-        msg = " ".join(args)
-#        escape_chars = '\*_`\['
-#        msg = re.sub(r'([%s])' % escape_chars, r'\\\1', msg)
-        time.sleep(3)
-        update.message.reply_text(msg, parse_mode='Markdown', disable_web_page_preview=True)
+
+def repeat(bot, update):
+    try:
+      msg = update.message.text.split(" ", 1)[1]
+    except IndexError:
+      return
+    update.effective_chat.send_action('typing')
+#   escape_chars = '\*_`\['
+#   msg = re.sub(r'([%s])' % escape_chars, r'\\\1', msg)
+    time.sleep(3)
+    update.message.reply_markdown(msg, disable_web_page_preview=True)
+
 
 def get_admin_ids(bot, chat_id):
     return [admin.user.id for admin in bot.getChatAdministrators(chat_id)]
+
 
 def corgii(bot, update):
     chat_id = update.message.chat.id
@@ -218,6 +225,7 @@ def corgii(bot, update):
     bot.sendChatAction(chat_id, action="upload_photo")
     link = corgi.corgi()
     bot.sendPhoto(chat_id, photo=link, caption="BUTTIFUL!", reply_to_message_id = msgid)
+
 
 def add(msg):
     chat_type = msg.chat.type
@@ -276,6 +284,7 @@ def add(msg):
             cursor.execute(editreplyuser)
             db2.commit()
 
+
 @run_async
 def stickers(bot, update):
     add(update.message)
@@ -300,7 +309,6 @@ def stickers(bot, update):
         msg.edit_text(sendmsg)
         bot.sendChatAction(update.message.chat.id, "UPLOAD_DOCUMENT")
         bot.sendDocument(update.message.chat.id, open(sendpath, 'rb'))
-
 
 
 def money(bot, update, groupdict):
@@ -331,6 +339,7 @@ def money(bot, update, groupdict):
     msg = "`{} {}({})` = `{} {}({})`".format(amount, afull, a, after, bfull, b)
     update.message.reply_text(msg, parse_mode='Markdown')
 
+
 def t(to_lang, text):
     if to_lang != 'English':
         to_langcode = str(langcodes.find(to_lang))
@@ -358,6 +367,7 @@ def t(to_lang, text):
     output += "`%s`" % translated
 
     return output
+
 
 def translatee(bot, update, args):
     chat_id = update.message.chat.id
@@ -392,6 +402,7 @@ def translatee(bot, update, args):
         after = t(to_lang, before)
         bot.sendMessage(chat_id, after, reply_to_message_id=msgid, parse_mode='Markdown')
 
+
 #def google(commandonly, querytype, querytext, chat_id, msgid):
 #    querytype = update.message.chat
 #    if commandonly == 1:
@@ -418,6 +429,7 @@ def translatee(bot, update, args):
 #    gmsg += "<a href='%s'>Click here</a>" % s_link
 #    print(gmsg)
 #    bot.sendMessage(chat_id, gmsg, reply_to_message_id=msgid, parse_mode='HTML', disable_web_page_preview='True')
+
 
 def pat(bot, update):
     chat_id = update.message.chat.id
@@ -509,6 +521,7 @@ def feedback(bot, update, args):
         db2.commit()
         bot.sendMessage(chat_id, "Feedback sent!", reply_to_message_id=msgid)
 
+
 def jsql(bot, update, args):
     chat_id = update.message.chat.id
     msgid = update.message.message_id
@@ -543,6 +556,7 @@ def jsql(bot, update, args):
         sqlerror = "`MySQL ErrorCode: %s\nErrorMsg: %s`" % (code, errormsg)
         bot.sendMessage(chat_id, sqlerror, reply_to_message_id=msgid, parse_mode='Markdown')
 
+
 def patstat(bot, update):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
@@ -565,6 +579,7 @@ def patstat(bot, update):
        patsby = row["pattedby"]
        patcountstr="Hello %s!\nYou have patted others `%d` times and got patted by others `%d` times." % (from_user_name, pats, patsby)
        bot.sendMessage(chat_id, patcountstr, reply_to_message_id=msgid, parse_mode="Markdown")
+
 
 def myloc(bot, update, args):
     from_id = update.message.from_user.id
@@ -663,7 +678,7 @@ def now(bot, update, args):
         wmsg += "\nLocal Time:`\t%s (UTC%s)`" % (localtime, localzone)
         bot.sendMessage(chat_id, wmsg, reply_to_message_id=msgid, parse_mode='Markdown')
     except:
-        print("LOL")
+        print("LOL") # no u
         bot.sendMessage(chat_id, "Something wrong with your location... or something wrong with me...", reply_to_message_id=msgid)
 
 
@@ -679,6 +694,7 @@ def checkbanned(from_id):
         return ban
     except:
         return -1
+
 
 def jban(bot, update, args):
     from_id = update.message.from_user.id
@@ -724,6 +740,7 @@ def jban(bot, update, args):
             print("not id")
             update.message.reply_text("not an id")
 
+
 def junban(bot, update, args):
     from_id = update.message.from_user.id
     chat_id = update.message.from_user.id
@@ -762,6 +779,7 @@ def junban(bot, update, args):
             print("not id")
             update.message.reply_text("Not ID")
 
+
 def jbanlist(bot, update):
     from_id = update.message.from_user.id
     chat_id = update.message.chat.id
@@ -789,12 +807,14 @@ def jbanlist(bot, update):
         result=cursor.fetchone()
     bot.sendMessage(chat_id, sqlmsg, reply_to_message_id=msgid, parse_mode='Markdown')
 
+
 def nopm(bot, chat_id, from_name, msgid):
     nopmmsg = from_name + ", Please start me at PM first."
     keyboard = [[InlineKeyboardButton("Start Me!", callback_data = 'start')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     bot.sendMessage(chat_id, nopmmsg, reply_to_message_id=msgid, reply_markup=reply_markup)
+
 
 def button(bot, update):
     query = update.callback_query
@@ -819,6 +839,7 @@ def button(bot, update):
     if query.data == 'achv':
         starturl="telegram.me/" + BOT_USERNAME + "?start=achv"
         bot.answerCallbackQuery(queryid, url=starturl)
+
 
 def help(bot, update):
     chat_type = update.message.chat.type
@@ -848,6 +869,7 @@ def help(bot, update):
 #    except:
 #        if chat_type != 'private':
 #            nopm(bot, chat_id, from_name, msgid)
+
 
 def calc_callback(bot, update, args):
     if not args:
@@ -1027,7 +1049,7 @@ def main():
     dp.add_handler(CommandHandler("pat", pat))
     dp.add_handler(CommandHandler("send", send, pass_args=True))
     dp.add_handler(CommandHandler("corgi", corgii))
-    dp.add_handler(CommandHandler("re", repeat, pass_args=True))
+    dp.add_handler(CommandHandler("re", repeat))
     dp.add_handler(CommandHandler("tg", tg))
     # dp.add_handler(CommandHandler("z", showinfo))
     dp.add_handler(CommandHandler("dict", dict, pass_args=True))
@@ -1052,7 +1074,6 @@ def main():
 
     updater.start_polling(clean=True)
     print("Bot has started... Polling for messages...")
-
 
 
 if __name__ == '__main__':
