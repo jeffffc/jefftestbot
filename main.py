@@ -39,15 +39,13 @@ MWT(timeout=60*60)
 
 
 def start(bot, update):
-    msg="Thank you for starting me! Use /help to get some brief help. Feel free to contact @jeffffc if you have questions."
-    if update.message.chat.type == "private":
+    msg = "Thank you for starting me! Use /help to get some brief help. Feel free to contact @jeffffc if you have questions."
+    if update.message.chat.type > 0:
         update.message.reply_text(msg)
-    else:
-        return
 
 
 def addtest(bot, update):
-    if update.message.reply_to_message is not None:
+    if update.message.reply_to_message:
         with open("testtest.txt", "a") as myfile:
             myfile.write(str(update.message.reply_to_message.message_id) + "\n")
         update.message.reply_text("Done")
@@ -111,7 +109,6 @@ def dict(bot, update, args):
     bye = checkbanned(from_id)
     if bye == 1:
         return
-
     if not args:
         bot.sendMessage(chat_id, "Use `/dict <word>`", reply_to_message_id=msgid, parse_mode='Markdown')
         return
