@@ -9,6 +9,7 @@ import urllib.parse
 import codecs
 from config import *
 
+
 def check(id):
     url = "http://tgwerewolf.com/stats/PlayerAchievements/?pid=" + str(id)
     stats = {}
@@ -44,4 +45,3 @@ def check(id):
             msg2 += ">>> _" + z['desc'] + "_\n"
 
     return msg, msg2
-
