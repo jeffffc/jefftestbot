@@ -236,40 +236,40 @@ def add(msg):
     from_user_name = msg.from_user.full_name
 #    from_user_e = db2.escape_string(from_user_name) # Jono: Duplicate?
     from_username = msg.from_user.username
-    from_user_e = db2.escape_string(from_user_name)
+    from_user_e = from_user_name
     cursor = engine.connect().connection.cursor()
 
     try:
         if chat_type in ('group', 'supergroup'):
             group_id = chat_id
-            group_name = db2.escape_string(msg.chat.title)
-            checkgroupexist = "select * from `group` where groupid=%d" % group_id
-            groupcount = cursor.execute(checkgroupexist)
+            group_name = msg.chat.title
+            checkgroupexist = "select * from `group` where groupid=%s"
+            groupcount = cursor.execute(checkgroupexist, (group_id,))
             if groupcount == 0:
                 newgroup = 1
-                addgroup = "insert into `group` (`name`, `groupid`) values ('%s', %d)" % (group_name, group_id)
-                cursor.execute(addgroup)
+                addgroup = "insert into `group` (`name`, `groupid`) values (%s, %s)"
+                cursor.execute(addgroup, (group_name, group_id))
                 # db2.commit()
             else:
                 newgroup = 0
-                updategroup = "update `group` set name='%s' where groupid=%d" % (group_name, group_id)
-                cursor.execute(updategroup)
+                updategroup = "update `group` set name=%s where groupid=%s"
+                cursor.execute(updategroup, (group_name, group_id))
                 # db2.commit()
     except Exception:
         print("Add/Update Group error")
     try:
-        adduser = "insert into user (`name`, `telegramid`, `username`) values ('%s', %d, '%s')" % (from_user_e, from_id, from_username)
-        cursor.execute(adduser)
+        adduser = "insert into user (`name`, `telegramid`, `username`) values (%s, %s, %s)"
+        cursor.execute(adduser, (from_user_e, from_id, from_username))
         # db2.commit()
     except Exception:
-        updateuser = "update user set name='%s', username='%s' where telegramid=%d" % (from_user_e, from_username, from_id)
-        cursor.execute(updateuser)
+        updateuser = "update user set name=%s, username=%s where telegramid=%s"
+        cursor.execute(updateuser, (from_user_e, from_username, from_id))
         # db2.commit()
 
     if reply_to:
         to_user = reply_to.from_user
         to_user_name = to_user.full_name
-        to_user_name_e = db2.escape_string(to_user_name)
+        to_user_name_e = to_user_name
         to_user_id = to_user.id
         to_user_username = to_user.username
         try:
@@ -485,13 +485,13 @@ def pat(bot, update, args):
     cursor.close()
 
 
-def feedback(bot, update):
+def feedback(bot, update, args):
     msg = update.message
     chat_id = msg.chat.id
     msgid = msg.message_id
     from_id = msg.from_user.id
     from_name = msg.from_user.full_name
-    from_username =  update.message.from_user.username
+    from_username = update.message.from_user.username
     add(msg)
 
     bey = checkbanned(from_id)
@@ -503,10 +503,10 @@ def feedback(bot, update):
         fb = "FEEDBACK FROM: %s (%d)\n" % (from_name, from_id)
         fb += " ".join(args)
         bot.send_message(chat_id=ADMIN_ID, text=msg)
-        fbmessage = db2.escape_string(" ".join(args))
-        fbsql = "insert into feedback (message, name, username, telegramid) values ('%s', '%s', '%s', %d)" % (fbmessage, from_name, from_username, from_id)
+        fbmessage = " ".join(args)
+        fbsql = "insert into feedback (message, name, username, telegramid) values (%s, %s, %s, %s)"
         cursor = engine.connect().connection.cursor()
-        cursor.execute(fbsql)
+        cursor.execute(fbsql, (fbmessage, from_name, from_username, from_id))
         # db2.commit()
         cursor.close()
         msg.reply_text("Feedback sent!", quote=True)
@@ -563,10 +563,9 @@ def patstat(bot, update):
         return
     cursor = engine.connect().connection.cursor()
 
-    cursor2 = db2.cursor(pymysql.cursors.DictCursor)
     checkpatcount=("select patted, pattedby from user where telegramid=%d" % from_id)
-    cursor2.execute(checkpatcount)
-    patcount = cursor2.fetchall()
+    cursor.execute(checkpatcount)
+    patcount = cursor.fetchall()
     for row in patcount:
         pats = row["patted"]
         patsby = row["pattedby"]
@@ -591,9 +590,9 @@ def myloc(bot, update, args):
     elif not args:
         msg.reply_markdown("Please use `/myloc <location>` to set your location.", quote=True)
     else:
-        setloc = db2.escape_string(" ".join(args))
-        setlocsql = "update user set loc='%s' where telegramid=%d" % (setloc, from_id)
-        cursor.execute(setlocsql)
+        setloc = " ".join(args)
+        setlocsql = "update user set loc='%s' where telegramid=%d"
+        cursor.execute(setlocsql, (setloc, from_id))
         # db2.commit()
         setmsg = "Your location is set to {}.".format(setloc)
         msg.reply_markdown(setmsg, quote=True)
