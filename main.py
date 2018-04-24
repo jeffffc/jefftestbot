@@ -283,7 +283,7 @@ def add(msg):
 
 @run_async
 def stickers(bot, update):
-	msg = update.message
+    msg = update.message
     add(msg)
     if msg.chat_id < 0:
         return
@@ -291,7 +291,7 @@ def stickers(bot, update):
         msg.reply_text("Reply to an image")
     elif not msg.reply_to_message.photo:
         msg.reply_text("The replied message contains no image.")
-	else:
+    else:
         photo_id = msg.reply_to_message.photo[-1].file_id
         sendmsg = "Downloading and Checking your image..."
         sent = msg.reply_text(sendmsg)
@@ -300,7 +300,7 @@ def stickers(bot, update):
         sent.edit_text(sendmsg)
         sendpath = make_sticker.convert(url)
         sendmsg += "\nDone!"
-       	sent.edit_text(sendmsg)
+        sent.edit_text(sendmsg)
         msg.chat.send_action("upload_document")
         msg.reply_document(open(sendpath, 'rb'))
 
@@ -364,7 +364,7 @@ def t(to_lang, text):
 
 
 def translatee(bot, update, args):
-	msg = update.message
+    msg = update.message
     reply_to = msg.reply_to_message
 
     add(msg)
@@ -385,14 +385,14 @@ def translatee(bot, update, args):
                 tr = t(to_lang, reply_to.text)
                 msg.reply_markdown(tr, quote=True)
         else:
-			to_lang = 'English'
-			if args[0][0] == "*":
-				to_lang = args[0][1:]
-				args.pop(0)
-			before = " ".join(args)
-			after = t(to_lang, before)
-			msg.reply_markdown(after, quote=True)
-	
+            to_lang = 'English'
+            if args[0][0] == "*":
+                to_lang = args[0][1:]
+                args.pop(0)
+            before = " ".join(args)
+            after = t(to_lang, before)
+            msg.reply_markdown(after, quote=True)
+
 
 
 #def google(commandonly, querytype, querytext, chat_id, msgid):
@@ -424,7 +424,7 @@ def translatee(bot, update, args):
 
 
 def pat(bot, update, args):
-	msg = update.message
+    msg = update.message
     chat_id = msg.chat.id
     msgid = msg.message_id
     from_id = msg.from_user.id
@@ -442,13 +442,13 @@ def pat(bot, update, args):
     bey = checkbanned(from_id)
     if bey == 1:
         return
-	elif not reply_to:
-		if args:
-			msg.reply_text("* pats {} *".format(args.join(" ")))
-		else:
-			msg.reply_text("* pats {} *".format(from_user_name))
-		return
-	
+    elif not reply_to:
+        if args:
+            msg.reply_text("* pats {} *".format(args.join(" ")))
+        else:
+            msg.reply_text("* pats {} *".format(from_user_name))
+        return
+
     sql = "select count(patid) from patdb"
     try:
         cursor.execute(sql)
@@ -469,20 +469,20 @@ def pat(bot, update, args):
     except Exception:
         print("ERROR")
 
-	patmsg = "{} {} {}.".format(to_user_name, patdesc, from_user_name)
-	msg.reply_text(patmsg, reply_to_message_id=reply_to_id)
-	patcountadd=("update user set pattedby = (pattedby + 1) where telegramid=%d" % to_user_id)
-	patbycountadd=("update user set patted = (patted + 1) where telegramid=%d" % from_id)
-	try:
-		cursor.execute(patcountadd)
-		cursor.execute(patbycountadd)
-		db2.commit()
-	except:
-		print("ERROR AT ADD PAT COUNT")
+    patmsg = "{} {} {}.".format(to_user_name, patdesc, from_user_name)
+    msg.reply_text(patmsg, reply_to_message_id=reply_to_id)
+    patcountadd=("update user set pattedby = (pattedby + 1) where telegramid=%d" % to_user_id)
+    patbycountadd=("update user set patted = (patted + 1) where telegramid=%d" % from_id)
+    try:
+        cursor.execute(patcountadd)
+        cursor.execute(patbycountadd)
+        db2.commit()
+    except:
+        print("ERROR AT ADD PAT COUNT")
 
 
 def feedback(bot, update):
-	msg = update.message
+    msg = update.message
     chat_id = msg.chat.id
     msgid = msg.message_id
     from_id = msg.from_user.id
@@ -507,7 +507,7 @@ def feedback(bot, update):
 
 
 def jsql(bot, update, args):
-	msg = update.message
+    msg = update.message
     chat_id = msg.chat.id
     msgid = msg.message_id
     from_id = msg.from_user.id
@@ -531,7 +531,7 @@ def jsql(bot, update, args):
         colnames= [i[0] for i in cursor.description]
         sqlmsg += "`{}`\n".format(colnames)
         while result:
-			sqlmsg = "{}`{}`\n".format(sqlmsg, result)
+            sqlmsg = "{}`{}`\n".format(sqlmsg, result)
             result = cursor.fetchone()
         sqlmsg += "`num of affected rows: {}`".format(cursor.rowcount)
         msg.reply_markdown(sqlmsg, quote=True)
@@ -542,7 +542,7 @@ def jsql(bot, update, args):
 
 
 def patstat(bot, update):
-	msg = update.message
+    msg = update.message
     from_id = msg.from_user.id
     chat_id = msg.chat.id
     msgid = msg.message_id
@@ -561,11 +561,11 @@ def patstat(bot, update):
         pats = row["patted"]
         patsby = row["pattedby"]
         patcountstr="Hello {}!\nYou have patted others {} times and got patted by others {} times.".format(from_user_name, pats, patsby)
-        msg.reply_markdown(patcountstr, quote=True))
+        msg.reply_markdown(patcountstr, quote=True)
 
 
 def myloc(bot, update, args):
-	msg = update.message
+    msg = update.message
     from_id = msg.from_user.id
     chat_id = msg.chat.id
     msgid = msg.message_id
@@ -588,7 +588,7 @@ def myloc(bot, update, args):
 
 @run_async
 def now(bot, update, args):
-	msg = update.message
+    msg = update.message
     from_id = msg.from_user.id
     chat_id = msg.chat.id
     msgid = msg.message_id
@@ -598,7 +598,7 @@ def now(bot, update, args):
     bey = checkbanned(from_id)
     if bey == 1:
         return
-	
+
     try:
         if args:
             loc = " ".join(args)
@@ -611,7 +611,7 @@ def now(bot, update, args):
                 userloc = row[0]
             db2.commit()
             if not userloc:
-				text = "Please use `/myloc <location>` to set default location or use `/now <location>`."
+                text = "Please use `/myloc <location>` to set default location or use `/now <location>`."
                 msg.reply_markdown(text, quote=True)
                 return
             else:
@@ -629,9 +629,9 @@ def now(bot, update, args):
         response = requests.get(url)
         result = response.json()
         locationkey = result[0]['Key']
-		place = result[0]['LocalizedName'] + ", "
-		place += result[0]['AdministrativeArea']['LocalizedName'] + ", "
-		place += result[0]['Country']['LocalizedName']
+        place = result[0]['LocalizedName'] + ", "
+        place += result[0]['AdministrativeArea']['LocalizedName'] + ", "
+        place += result[0]['Country']['LocalizedName']
         localtzname = result[0]['TimeZone']['Name']
         localtz = pytz.timezone(localtzname)
         local = str(datetime.datetime.now(localtz))
@@ -648,7 +648,7 @@ def now(bot, update, args):
         ctemp = str(result[0]['Temperature']['Metric']['Value']) + "°" + result[0]['Temperature']['Metric']['Unit']
         ftemp = str(result[0]['Temperature']['Imperial']['Value']) + "°" + result[0]['Temperature']['Imperial']['Unit']
         '''
-		
+
         url = "http://api.apixu.com/v1/current.json"
         url += "?key=" + APIXU_API
         url += "&q=" + urllib.parse.quote(loc)
@@ -685,7 +685,7 @@ def checkbanned(from_id):
 
 
 def jban(bot, update, args):
-	msg= update.message
+    msg= update.message
     from_id = msg.from_user.id
 
     add(msg)
@@ -725,7 +725,7 @@ def jban(bot, update, args):
 
 
 def junban(bot, update, args):
-	msg = update.message
+    msg = update.message
     from_id = msg.from_user.id
 
     add(msg)
