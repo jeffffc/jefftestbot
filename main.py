@@ -134,7 +134,7 @@ def dict_go(word):
         msg = "Definition(s) of word `{}`:\n".format(word)
         num = 1
         for each in list:
-            msg += "{}: `{}`\n".format(num, each['entries'][0]['senses'][0]['definitions'][0])[:-1])
+            msg += "{}: `{}`\n".format(num, each['entries'][0]['senses'][0]['definitions'][0][:-1])
             num += 1
         return msg
     except Exception:
