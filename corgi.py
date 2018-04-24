@@ -6,6 +6,7 @@ import requests
 import mimetypes
 import random
 
+
 def corgi():
     url = "https://www.googleapis.com/customsearch/v1?"
     apikey = GOOGLE_API

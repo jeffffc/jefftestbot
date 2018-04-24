@@ -100,3 +100,4 @@ ACHV = [{"name": "Welcome to Hell", "desc": "Play a game"},
         {"name": "In for the Long Haul", "desc": "Survive for at least an hour in a single game"},
         {"name": "OH SHI-", "desc": "Kill your lover on the first night"},
         {"name": "Veteran", "desc": "Play 500 games.  You can now join @werewolfvets"}]
+
