@@ -6,6 +6,7 @@ from ast import literal_eval
 
 import pytz
 import pymysql
+import sqlalchemy
 import urllib
 import requests
 import json
@@ -27,8 +28,7 @@ from telegram.ext.dispatcher import run_async
 import logging
 from mwt import MWT
 
-db2 = None
-cursor = None
+engline = None
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -237,6 +237,7 @@ def add(msg):
 #    from_user_e = db2.escape_string(from_user_name) # Jono: Duplicate?
     from_username = msg.from_user.username
     from_user_e = db2.escape_string(from_user_name)
+    cursor = engine.connect().connection.cursor()
 
     try:
         if chat_type in ('group', 'supergroup'):
@@ -248,22 +249,22 @@ def add(msg):
                 newgroup = 1
                 addgroup = "insert into `group` (`name`, `groupid`) values ('%s', %d)" % (group_name, group_id)
                 cursor.execute(addgroup)
-                db2.commit()
+                # db2.commit()
             else:
                 newgroup = 0
                 updategroup = "update `group` set name='%s' where groupid=%d" % (group_name, group_id)
                 cursor.execute(updategroup)
-                db2.commit()
+                # db2.commit()
     except Exception:
         print("Add/Update Group error")
     try:
         adduser = "insert into user (`name`, `telegramid`, `username`) values ('%s', %d, '%s')" % (from_user_e, from_id, from_username)
         cursor.execute(adduser)
-        db2.commit()
+        # db2.commit()
     except Exception:
         updateuser = "update user set name='%s', username='%s' where telegramid=%d" % (from_user_e, from_username, from_id)
         cursor.execute(updateuser)
-        db2.commit()
+        # db2.commit()
 
     if reply_to:
         to_user = reply_to.from_user
@@ -274,11 +275,12 @@ def add(msg):
         try:
             addreplyuser = "insert into user (name, username, telegramid) values ('%s', '%s', %d)" % (to_user_name_e, to_user_username, to_user_id)
             cursor.execute(addreplyuser)
-            db2.commit()
+            # db2.commit()
         except Exception:
             editreplyuser = "update user set name='%s', username='%s' where telegramid=%d" % (to_user_name_e, to_user_username, to_user_id)
             cursor.execute(editreplyuser)
-            db2.commit()
+            # db2.commit()
+    cursor.close()
 
 
 @run_async
@@ -448,6 +450,7 @@ def pat(bot, update, args):
         else:
             msg.reply_text("* pats {} *".format(from_user_name))
         return
+    cursor = engine.connect().connection.cursor()
 
     sql = "select count(patid) from patdb"
     try:
@@ -476,9 +479,10 @@ def pat(bot, update, args):
     try:
         cursor.execute(patcountadd)
         cursor.execute(patbycountadd)
-        db2.commit()
+        # db2.commit()
     except:
         print("ERROR AT ADD PAT COUNT")
+    cursor.close()
 
 
 def feedback(bot, update):
@@ -501,8 +505,10 @@ def feedback(bot, update):
         bot.send_message(chat_id=ADMIN_ID, text=msg)
         fbmessage = db2.escape_string(" ".join(args))
         fbsql = "insert into feedback (message, name, username, telegramid) values ('%s', '%s', '%s', %d)" % (fbmessage, from_name, from_username, from_id)
+        cursor = engine.connect().connection.cursor()
         cursor.execute(fbsql)
-        db2.commit()
+        # db2.commit()
+        cursor.close()
         msg.reply_text("Feedback sent!", quote=True)
 
 
@@ -520,12 +526,14 @@ def jsql(bot, update, args):
     elif from_id != ADMIN_ID:
         msg.reply_text("You are not {}!".format(ADMIN_NAME), quote=True)
         return
+    cursor = engine.connect().connection.cursor()
 
     try:
         enteredsql = " ".join(args)
         print(enteredsql)
+        
         cursor.execute(enteredsql)
-        db2.commit()
+        # db2.commit()
         result = cursor.fetchone()
         sqlmsg = "PERFORMING SQL QUERY:\n"
         colnames= [i[0] for i in cursor.description]
@@ -539,6 +547,7 @@ def jsql(bot, update, args):
         code, errormsg = e.args
         sqlerror = "`MySQL ErrorCode: {}\nErrorMsg: {}`".format(code, errormsg)
         msg.reply_markdown(sqlerror, quote=True)
+    cursor.close()
 
 
 def patstat(bot, update):
@@ -552,6 +561,7 @@ def patstat(bot, update):
     bey = checkbanned(from_id)
     if bey == 1:
         return
+    cursor = engine.connect().connection.cursor()
 
     cursor2 = db2.cursor(pymysql.cursors.DictCursor)
     checkpatcount=("select patted, pattedby from user where telegramid=%d" % from_id)
@@ -562,6 +572,7 @@ def patstat(bot, update):
         patsby = row["pattedby"]
         patcountstr="Hello {}!\nYou have patted others {} times and got patted by others {} times.".format(from_user_name, pats, patsby)
         msg.reply_markdown(patcountstr, quote=True)
+    cursor.close()
 
 
 def myloc(bot, update, args):
@@ -573,6 +584,8 @@ def myloc(bot, update, args):
     add(msg)
 
     bey = checkbanned(from_id)
+    cursor = engine.connect().connection.cursor()
+
     if bey == 1:
         return
     elif not args:
@@ -581,9 +594,10 @@ def myloc(bot, update, args):
         setloc = db2.escape_string(" ".join(args))
         setlocsql = "update user set loc='%s' where telegramid=%d" % (setloc, from_id)
         cursor.execute(setlocsql)
-        db2.commit()
+        # db2.commit()
         setmsg = "Your location is set to {}.".format(setloc)
         msg.reply_markdown(setmsg, quote=True)
+    cursor.close()
 
 
 @run_async
@@ -594,6 +608,7 @@ def now(bot, update, args):
     msgid = msg.message_id
 
     add(msg)
+    cursor = engine.connect().connection.cursor()
 
     bey = checkbanned(from_id)
     if bey == 1:
@@ -605,11 +620,11 @@ def now(bot, update, args):
         else:
             checkloc="select loc from user where telegramid=%d" % from_id
             cursor.execute(checkloc)
-            db2.commit()
+            # db2.commit()
             result = cursor.fetchall()
             for row in result:
                 userloc = row[0]
-            db2.commit()
+            # db2.commit()
             if not userloc:
                 text = "Please use `/myloc <location>` to set default location or use `/now <location>`."
                 msg.reply_markdown(text, quote=True)
@@ -668,20 +683,24 @@ def now(bot, update, args):
     except Exception:
         print("Looks like some nub used /now Mars")
         msg.reply_text("Something wrong with your location... or something wrong with me...", quote=True)
+    cursor.close()
 
 
 def checkbanned(from_id):
     from_id = int(from_id)
+    cursor = engine.connect().connection.cursor()
+
     bansql = "select banned from user where telegramid=%d" % from_id
     cursor.execute(bansql)
     try:
         banned = cursor.fetchall()
         for row in banned:
             ban = row[0]
-        db2.commit()
+        # db2.commit()
         return ban
     except Exception:
         return -1
+    cursor.close()
 
 
 def jban(bot, update, args):
@@ -689,6 +708,7 @@ def jban(bot, update, args):
     from_id = msg.from_user.id
 
     add(msg)
+    cursor = engine.connect().connection.cursor()
 
     bey = checkbanned(from_id)
     if bey == 1:
@@ -713,7 +733,7 @@ def jban(bot, update, args):
                 bannow = "update user set banned=1 where telegramid={}".format(banid)
                 try:
                     cursor.execute(bannow)
-                    db2.commit()
+                    # db2.commit()
                     print("banned")
                     msg.reply_text("Ban Successful.")
                 except:
@@ -722,6 +742,7 @@ def jban(bot, update, args):
         else:
             print("not id")
             msg.reply_text("not an id")
+    cursor.close()
 
 
 def junban(bot, update, args):
@@ -729,6 +750,7 @@ def junban(bot, update, args):
     from_id = msg.from_user.id
 
     add(msg)
+    cursor = engine.connect().connection.cursor()
 
     bey = checkbanned(from_id)
     if bey == 1:
@@ -749,13 +771,14 @@ def junban(bot, update, args):
                 unbannow = "update user set banned=0 where telegramid={}".format(unbanid)
                 try:
                     cursor.execute(unbannow)
-                    db2.commit()
+                    # db2.commit()
                     msg.reply_text("Unban Successful")
                 except:
                     msg.reply_text("Failed, try again.")
         else:
             print("not id")
             msg.reply_text("Not ID")
+    cursor.close()
 
 
 def jbanlist(bot, update):
@@ -764,6 +787,7 @@ def jbanlist(bot, update):
     msgid = update.message.message_id
 
     add(update.message)
+    cursor = engine.connect().connection.cursor()
 
     bey = checkbanned(from_id)
     if bey == 1:
@@ -775,7 +799,7 @@ def jbanlist(bot, update):
 
     banlistsql = "select name, username, telegramid from user where banned=1"
     cursor.execute(banlistsql)
-    db2.commit()
+    # db2.commit()
     result=cursor.fetchone()
     sqlmsg = "Banned users:\n"
     if not result:
@@ -784,6 +808,7 @@ def jbanlist(bot, update):
         sqlmsg+="`"+str(result)+"`\n"
         result=cursor.fetchone()
     bot.sendMessage(chat_id, sqlmsg, reply_to_message_id=msgid, parse_mode='Markdown')
+    cursor.close()
 
 
 def nopm(bot, chat_id, from_name, msgid):
@@ -872,6 +897,7 @@ def send(bot, update, args):
         to_user_id = reply_to.from_user.id
 
     add(update.message)
+    cursor = engine.connect().connection.cursor()
 
     bey = checkbanned(from_id)
     if bey == 1:
@@ -906,11 +932,11 @@ def send(bot, update, args):
             sendperson = sendperson[1:]
             personsql="select telegramid from user where username='%s'" % sendperson
             cursor.execute(personsql)
-            db2.commit()
+            # db2.commit()
             result = cursor.fetchall()
             for row in result:
                 item = row[0]
-            db2.commit()
+            # db2.commit()
             try:
                 bot.sendMessage(item, sendmessage)
                 bot.sendMessage(chat_id, "Message sent", reply_to_message_id=msgid)
@@ -926,6 +952,7 @@ def send(bot, update, args):
             bot.sendMessage(chat_id, "Message sent", reply_to_message_id=msgid)
         except:
             bot.sendMessage(chat_id, "Send Failed", reply_to_message_id=msgid)
+    cursor.close()
 
 
 @run_async
@@ -972,9 +999,14 @@ def save_message(bot, update):
 
 
 def main():
-    global db2, cursor
-    db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8', autocommit=True)
-    cursor = db2.cursor()
+    # global db2, cursor
+    global engine
+    # db2 = pymysql.connect(MYSQL_SERVER, MYSQL_USERNAME, MYSQL_PW, MYSQL_DBNAME, charset='utf8', autocommit=True)
+    conn_str = "mysql+pymysql://{}:{}@{}/{}?charset=utf8mb4&autocommit=true".format(MYSQL_USERNAME, MYSQL_PW,
+                                                                                    MYSQL_SERVER, MYSQL_DBNAME)
+    engine = sqlalchemy.create_engine(conn_str, pool_size=60, max_overflow=0, pool_recycle=20)
+
+    cursor = engine.connect().connection.cursor()
 
     cursor.execute("set names utf8mb4")
     cursor.execute("set character set utf8mb4")
@@ -984,16 +1016,17 @@ def main():
     cursor.execute(SQL_CREATE_TABLE_2)
     cursor.execute(SQL_CREATE_TABLE_3)
     cursor.execute(SQL_CREATE_TABLE_4)
-    db2.commit()
+    # # db2.commit()
 
 
     try:
         cursor.execute(SQL_DEFAULT_PAT)
-        db2.commit()
+        # # db2.commit()
 #        db2.close()
     except:
         print("Default Pat String exists already.")
 
+    cursor.close()
     updater = Updater(BOT_TOKEN)
 
     job = updater.job_queue
