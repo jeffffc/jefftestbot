@@ -62,7 +62,7 @@ def showtest(bot, update):
 
 
 def error(bot, update, error):
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+    logger.warn('Update {} caused error {}'.format(update, error))
 
 
 def calculatesfake(bot, update, args):
@@ -273,12 +273,12 @@ def add(msg):
         to_user_id = to_user.id
         to_user_username = to_user.username
         try:
-            addreplyuser = "insert into user (name, username, telegramid) values ('%s', '%s', %d)" % (to_user_name_e, to_user_username, to_user_id)
-            cursor.execute(addreplyuser)
+            addreplyuser = "insert into user (name, username, telegramid) values (%s, %s, %s)"
+            cursor.execute(addreplyuser, (to_user_name_e, to_user_username, to_user_id))
             # db2.commit()
         except Exception:
-            editreplyuser = "update user set name='%s', username='%s' where telegramid=%d" % (to_user_name_e, to_user_username, to_user_id)
-            cursor.execute(editreplyuser)
+            editreplyuser = "update user set name=%s, username=%s where telegramid=%s"
+            cursor.execute(editreplyuser, (to_user_name_e, to_user_username, to_user_id))
             # db2.commit()
     cursor.close()
 
@@ -420,7 +420,7 @@ def translatee(bot, update, args):
 #    s_link = result['items'][0]['link']
 #    gmsg = "Search Result for <code>%s</code>:\n" % querytext
 #    gmsg += "<code>%s</code>\n" % s_title
-#    gmsg += "<a href='%s'>Click here</a>" % s_link
+#    gmsg += "<a href=%s>Click here</a>" % s_link
 #    print(gmsg)
 #    bot.sendMessage(chat_id, gmsg, reply_to_message_id=msgid, parse_mode='HTML', disable_web_page_preview='True')
 
@@ -463,9 +463,9 @@ def pat(bot, update, args):
 
     patnum = random.randint(1, patcount)
 
-    sql2 = "select patdesc from patdb where patid = '%d'" % (patnum)
+    sql2 = "select patdesc from patdb where patid = %s"
     try:
-        cursor.execute(sql2)
+        cursor.execute(sql2, (patnum,))
         data = cursor.fetchall()
         for row in data:
             patdesc = row[0]
@@ -474,8 +474,8 @@ def pat(bot, update, args):
 
     patmsg = "{} {} {}.".format(to_user_name, patdesc, from_user_name)
     msg.reply_text(patmsg, reply_to_message_id=reply_to_id)
-    patcountadd=("update user set pattedby = (pattedby + 1) where telegramid=%d" % to_user_id)
-    patbycountadd=("update user set patted = (patted + 1) where telegramid=%d" % from_id)
+    patcountadd=("update user set pattedby = (pattedby + 1) where telegramid=%s" % to_user_id)
+    patbycountadd=("update user set patted = (patted + 1) where telegramid=%s" % from_id)
     try:
         cursor.execute(patcountadd)
         cursor.execute(patbycountadd)
@@ -500,7 +500,7 @@ def feedback(bot, update, args):
     elif not args:
         msg.reply_markdown("Use `/feedback <Message here>` to send feedback to me!")
     else:
-        fb = "FEEDBACK FROM: %s (%d)\n" % (from_name, from_id)
+        fb = "FEEDBACK FROM: %s (%s)\n".format(from_name, from_id)
         fb += " ".join(args)
         bot.send_message(chat_id=ADMIN_ID, text=msg)
         fbmessage = " ".join(args)
@@ -563,7 +563,7 @@ def patstat(bot, update):
         return
     cursor = engine.connect().connection.cursor()
 
-    checkpatcount=("select patted, pattedby from user where telegramid=%d" % from_id)
+    checkpatcount=("select patted, pattedby from user where telegramid=%s" % from_id)
     cursor.execute(checkpatcount)
     patcount = cursor.fetchall()
     for row in patcount:
@@ -591,7 +591,7 @@ def myloc(bot, update, args):
         msg.reply_markdown("Please use `/myloc <location>` to set your location.", quote=True)
     else:
         setloc = " ".join(args)
-        setlocsql = "update user set loc='%s' where telegramid=%d"
+        setlocsql = "update user set loc=%s where telegramid=%s"
         cursor.execute(setlocsql, (setloc, from_id))
         # db2.commit()
         setmsg = "Your location is set to {}.".format(setloc)
@@ -617,7 +617,7 @@ def now(bot, update, args):
         if args:
             loc = " ".join(args)
         else:
-            checkloc="select loc from user where telegramid=%d" % from_id
+            checkloc="select loc from user where telegramid=%s" % from_id
             cursor.execute(checkloc)
             # db2.commit()
             result = cursor.fetchall()
@@ -689,7 +689,7 @@ def checkbanned(from_id):
     from_id = int(from_id)
     cursor = engine.connect().connection.cursor()
 
-    bansql = "select banned from user where telegramid=%d" % from_id
+    bansql = "select banned from user where telegramid=%s" % from_id
     cursor.execute(bansql)
     try:
         banned = cursor.fetchall()
@@ -929,7 +929,7 @@ def send(bot, update, args):
                 bot.sendMessage(chat_id, "Message sent")
         else:
             sendperson = sendperson[1:]
-            personsql="select telegramid from user where username='%s'" % sendperson
+            personsql="select telegramid from user where username=%s" % sendperson
             cursor.execute(personsql)
             # db2.commit()
             result = cursor.fetchall()
