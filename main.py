@@ -1033,7 +1033,7 @@ def reminder_callback(bot, update, args, job_queue):
     if days:
         time_msg += '{} days'.format(days)
     if mins:
-        time_msg += ' {} minutes'.format(days)
+        time_msg += ' {} minutes'.format(mins)
     if secs:
         time_msg += ' {} seconds'.format(secs)
     update.message.reply_text('OK I will remind you in {}. #reminder'.format(time_msg))
@@ -1052,7 +1052,7 @@ def send_reminder(bot, job):
 def create_new_reminder(timeadded, chatid, telegramid, name, msgid, newtime, text):
     sql = 'INSERT INTO REMINDERS VALUES(%s, %s, %s, %s, %s, %s, %s)'
     cursor = engine.connect().connection.cursor()
-    cursor.execute(sql, timeadded, chatid, telegramid, name, msgid, newtime, text)
+    cursor.execute(sql, (timeadded, chatid, telegramid, name, msgid, newtime, text))
     cursor.commit()
 
 
@@ -1103,6 +1103,7 @@ def main():
     cursor.execute(getremindersql)
     # db.commit()
     oldreminders = {}
+    j = updater.job_queue
     for row in cursor.fetchall():
         chat_id = row[2]
         from_id = row[3]
@@ -1112,7 +1113,7 @@ def main():
         text = row[7]
         data = [chat_id, from_id, from_name, msgid, time, text]
         job_name = "reminder:%d:%d" % (chat_id, msgid)
-        oldreminders[job_name] = j.run_once(resumereminder, time, context=data)
+        oldreminders[job_name] = j.run_once(resume_reminder, time, context=data)
     cursor.close()
 
     dp = updater.dispatcher
