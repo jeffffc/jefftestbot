@@ -1031,7 +1031,7 @@ def reminder_callback(bot, update, args, job_queue):
                                   "either integers for number of minutes, or in `1d2m3s` format.",
                                   parse_mode='Markdown')
         return
-    txt = update.message.text.split(' ', 3)[2]
+    txt = update.message.text.split(' ', 2)[2]
     r_time = datetime.datetime.now() + datetime.timedelta(days=days, minutes=mins, seconds=secs)
     data = [update.message.from_user.first_name, update, days, mins, secs, txt]
     job_queue.run_once(send_reminder, r_time, context=data)
