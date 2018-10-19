@@ -1054,7 +1054,6 @@ def create_new_reminder(timeadded, chatid, telegramid, name, msgid, newtime, tex
           'VALUES(%s, %s, %s, %s, %s, %s, %s)'
     cursor = engine.connect().connection.cursor()
     cursor.execute(sql, (timeadded, chatid, telegramid, name, msgid, newtime, text))
-    cursor.commit()
 
 
 def resume_reminder(bot, job):
