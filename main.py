@@ -162,14 +162,14 @@ def ud_go(word):
     try:
         r = requests.get(url, headers = {"X-Mashape-Key": UD_API, "Accept": "text/plain"})
         result = r.json()
-        if result['result_type'] == 'no_results':
+        lst = result['list']
+        if not lst:
             msg = "Sorry. No results for `{}`.".format(word)
             return msg
-        list = result['list']
         msg = "Query of `{}` on Urban Dictionary:\n".format(word)
         num = 1
         limit = 1
-        for each in list:
+        for each in lst:
             msg += "{}: `{}`\n".format(num, each['definition'])
             break  # Jono: I'd rather use list[0] than a loop then, but idk what u r doing
         return msg
