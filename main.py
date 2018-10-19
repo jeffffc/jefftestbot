@@ -37,6 +37,8 @@ logger = logging.getLogger(__name__)
 
 MWT(timeout=60*60)
 
+REMINDER_REGEX = re.compile(r'((\d+)d)?((\d*)m)?((\d*)s)?')
+
 
 def start(bot, update):
     msg = update.message
@@ -997,6 +999,69 @@ def save_message(bot, update):
         update.message.reply_text("You have not started me in private...")
 
 
+def reminder_callback(bot, update, args, job_queue):
+    if not args:
+        update.message.reply_text("You have to specify the reminder time, "
+                                  "either integers for number of minutes, or in `1d2m3s` format.",
+                                  parse_mode='Markdown')
+        return
+    try:
+        mins = int(args[0])
+        days = 0
+        secs = 0
+    except ValueError:
+        groups = re.match(REMINDER_REGEX, args[0])
+        days = groups.group(2)
+        if not days:
+            days = 0
+        mins = groups.group(4)
+        if not mins:
+            mins = 0
+        secs = groups.group(6)
+        if not secs:
+            secs = 0
+    if not days and not mins and not secs:
+        update.message.reply_text("You have to specify the reminder time, "
+                                  "either integers for number of minutes, or in `1d2m3s` format.",
+                                  parse_mode='Markdown')
+        return
+    txt = update.message.split(' ', 3)[2]
+    r_time = datetime.datetime.now() + datetime.timedelta(days=days, minutes=mins, seconds=secs)
+    data = [update.message.from_user.first_name, update, days, mins, secs, txt]
+    job_queue.run_once(send_reminder, r_time, context=data)
+    time_msg = ''
+    if days:
+        time_msg += '{} days'.format(days)
+    if mins:
+        time_msg += ' {} minutes'.format(days)
+    if secs:
+        time_msg += ' {} seconds'.format(secs)
+    update.message.reply_text('OK I will remind you in {}. #reminder'.format(time_msg))
+    create_new_reminder(datetime.datetime.now(), update.message.chat_id, update.message.from_user.id,
+                        engine.connect().connection.escape_string(update.message.from_user.first_name),
+                        update.message.message_id,
+                        r_time, engine.connect().connection.escape_string(txt))
+
+
+@run_async
+def send_reminder(bot, job):
+    name, update, days, mins, secs, reminder = job.context
+    update.message.reply_text('{}, you told me to remind you: {}'.format(name, reminder))
+
+
+def create_new_reminder(timeadded, chatid, telegramid, name, msgid, newtime, text):
+    sql = 'INSERT INTO REMINDERS VALUES(%s, %s, %s, %s, %s, %s, %s)'
+    cursor = engine.connect().connection.cursor()
+    cursor.execute(sql, timeadded, chatid, telegramid, name, msgid, newtime, text)
+    cursor.commit()
+
+
+def resume_reminder(bot, job):
+    chat_id, from_id, from_name, msgid, time, text = job.context
+    msg = '{}, you told me to remind you: {}'.format(from_name, text)
+    bot.sendMessage(chat_id=chat_id, text=msg, reply_to_message_id=msgid)
+
+
 def main():
     # global db2, cursor
     global engine
@@ -1031,6 +1096,24 @@ def main():
     job = updater.job_queue
     nexthour = datetime.datetime.now().replace(microsecond=0).replace(second=0).replace(minute=0) + datetime.timedelta(hours=1)
 #    job.run_repeating(amaat, datetime.timedelta(hours=1), first=nexthour)
+    timenow = datetime.datetime.now().replace(second=0)
+    getremindersql = "select * from reminders where timediff(time, '{}') > 0 and time < '{}'".format(
+        timenow.strftime("%Y-%m-%d %H:%M:%S"), (timenow + datetime.timedelta(days=10)))
+    cursor = engine.connect().connection.cursor()
+    cursor.execute(getremindersql)
+    # db.commit()
+    oldreminders = {}
+    for row in cursor.fetchall():
+        chat_id = row[2]
+        from_id = row[3]
+        from_name = row[4]
+        msgid = row[5]
+        time = row[6]
+        text = row[7]
+        data = [chat_id, from_id, from_name, msgid, time, text]
+        job_name = "reminder:%d:%d" % (chat_id, msgid)
+        oldreminders[job_name] = j.run_once(resumereminder, time, context=data)
+    cursor.close()
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("jbanlist", jbanlist))
@@ -1059,6 +1142,7 @@ def main():
     dp.add_handler(CommandHandler("sticker", stickers))
     dp.add_handler(CommandHandler("calc", calc_callback, pass_args=True))
     dp.add_handler(CommandHandler("search", search_id_callback, pass_args=True))
+    dp.add_handler(CommandHandler("reminder", reminder_callback, pass_args=True, pass_job_queue=True))
 
     dp.add_handler(CommandHandler("s", save_message, filters=(Filters.reply & Filters.group)))
 
