@@ -1014,12 +1014,18 @@ def reminder_callback(bot, update, args, job_queue):
         days = groups.group(2)
         if not days:
             days = 0
+        else:
+            days = int(days)
         mins = groups.group(4)
         if not mins:
             mins = 0
+        else:
+            mins = int(mins)
         secs = groups.group(6)
         if not secs:
             secs = 0
+        else:
+            secs = int(secs)
     if not days and not mins and not secs:
         update.message.reply_text("You have to specify the reminder time, "
                                   "either integers for number of minutes, or in `1d2m3s` format.",
