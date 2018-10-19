@@ -1000,7 +1000,7 @@ def save_message(bot, update):
 
 
 def reminder_callback(bot, update, args, job_queue):
-    if not args:
+    if not args or len(args) < 2:
         update.message.reply_text("You have to specify the reminder time, "
                                   "either integers for number of minutes, or in `1d2m3s` format.",
                                   parse_mode='Markdown')
