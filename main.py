@@ -1050,7 +1050,7 @@ def send_reminder(bot, job):
 
 
 def create_new_reminder(timeadded, chatid, telegramid, name, msgid, newtime, text):
-    sql = 'INSERT INTO REMINDERS VALUES(%s, %s, %s, %s, %s, %s, %s)'
+    sql = 'INSERT INTO reminders VALUES(%s, %s, %s, %s, %s, %s, %s)'
     cursor = engine.connect().connection.cursor()
     cursor.execute(sql, (timeadded, chatid, telegramid, name, msgid, newtime, text))
     cursor.commit()
